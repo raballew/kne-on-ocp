@@ -48,10 +48,10 @@ to run some workload beyond the scope of this guide:
 You also will be able to use a much smaller setup but it would significantly
 impact performance and should only be used for evaluation.
 
-First clone this repository:
+First, clone the source code required for this guide:
 
 ```bash
-
+git clone git@github.com:raballew/kne-on-ocp.git
 ```
 
 ## Deploy meshnet CNI
@@ -140,47 +140,27 @@ oc apply -f https://raw.githubusercontent.com/aristanetworks/arista-ceoslab-oper
 
 Additionally, Keysight provides an operator for traffic generation as well.
 
-Make sure that the version of the `IXIA_TG` node (local-latest) in
-[3-node-ceos-withtraffic.pb.txt](/topologies/3-node-ceos-withtraffic.pb.txt) is
-similar to the version of specified in
-[configmap.yaml](/manifests/ixiatg/configmap.yaml) that is going to be applied
-in the next step.
-
-Deploy the Ixia-C operator:
-
-```bash
-oc apply -f https://github.com/open-traffic-generator/ixia-c-operator/releases/download/v0.2.2/ixiatg-operator.yaml
-oc patch deploy ixiatg-op-controller-manager -n ixiatg-op-system --type json -p='[{"op": "replace", "path": "/spec/template/spec/containers/1/resources/limits/memory", "value":"200Mi"}]'
-oc apply -f manifests/ixiatg/configmap.yaml
-```
-
 Make sure the correct `image` is set for `ARISTA_CEOS` nodes in
-[3-node-ceos-withtraffic.pb.txt](/topologies/3-node-ceos-withtraffic.pb.txt) if
-you use a different version of cEOS.
+[3-node-ceos.pb.txt](/topologies/3-node-ceos.pb.txt) if you use a different
+version of cEOS.
 
 Deploy the topology into a new namespace:
 
 ```bash
-namespace=3-node-ceos-withtraffic
+namespace=3-node-ceos
 oc create namespace $namespace
 tmp_dir=$(mktemp -d)
 cp -r topologies/ $tmp_dir
-echo "name: \"$namespace\"" >> $tmp_dir/topologies/3-node-ceos-withtraffic.pb.txt
-kne create $tmp_dir/topologies/3-node-ceos-withtraffic.pb.txt --kubecfg $KUBECONFIG
+echo "name: \"$namespace\"" >> $tmp_dir/topologies/3-node-ceos.pb.txt
+kne create $tmp_dir/topologies/3-node-ceos.pb.txt --kubecfg $KUBECONFIG
 ```
 
 Verify that the virtual instances are working:
 
 ```bash
-oc exec -it -n $namespace r1 -- Cli
-oc exec -it -n $namespace r2 -- Cli
-oc exec -it -n $namespace r3 -- Cli
-```
-
-Push a configuration to a virtual instance:
-
-```bash
-
+oc exec -it -n $namespace r1 -- Cli -c "show bgp instance"
+oc exec -it -n $namespace r2 -- Cli -c "show bgp instance"
+oc exec -it -n $namespace r3 -- Cli -c "show bgp instance"
 ```
 
 Delete the topology:
@@ -194,6 +174,12 @@ Where:
 * `$KUBECONFIG` - List of paths to configuration files used to configure access
   to a cluster
 
+## Limitations
+
+IXIA traffic generation as described in the [KNE examples][kne-examples] does
+not seem to work on OpenShift as IXIA requires additional privileges and seem to
+have problems handling arbitrary UID which are enforced on OpenShift.
+
 [kne]: https://github.com/openconfig/kne
 [kne-docs]: https://github.com/openconfig/kne/blob/main/docs/setup.md
 [okd-docs]: https://docs.okd.io/
@@ -204,3 +190,5 @@ Where:
     https://metallb.universe.tf/installation/clouds/#metallb-on-openshift-ocp
 [tekton]: https://tekton.dev/docs/
 [arista-software-download]: https://www.arista.com/en/support/software-download
+[kne-examples]:
+    https://github.com/openconfig/kne/blob/main/examples/3node-withtraffic.pb.txt
