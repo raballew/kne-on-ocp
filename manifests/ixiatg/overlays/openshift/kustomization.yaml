@@ -1,0 +1,23 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+commonLabels:
+  app: ixiatg
+kind: Kustomization
+patches:
+  - patch: |-
+      - op: add
+        path: /rules/-
+        value:
+          apiGroups:
+            - security.openshift.io
+          resourceNames:
+            - privileged
+          resources:
+            - securitycontextconstraints
+          verbs:
+            - use
+    target:
+      kind: ClusterRole
+      name: meshnet-clusterrole
+resources:
+  - ../../base/

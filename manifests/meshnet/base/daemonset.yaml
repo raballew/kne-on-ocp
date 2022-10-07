@@ -1,0 +1,59 @@
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: meshnet
+spec:
+  selector:
+    matchLabels:
+      component: cni
+  template:
+    metadata:
+      labels:
+        component: cni
+    spec:
+      containers:
+        - env:
+            - name: HOST_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: INTER_NODE_LINK_TYPE
+              value: VXLAN
+          image: meshnet
+          imagePullPolicy: IfNotPresent
+          name: meshnet
+          resources:
+            limits:
+              memory: 200Mi
+            requests:
+              cpu: 100m
+              memory: 200Mi
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - mountPath: /etc/cni/net.d
+              name: cni-cfg
+            - mountPath: /opt/cni/bin
+              name: cni-bin
+            - mountPath: /var/run/netns
+              mountPropagation: Bidirectional
+              name: var-run-netns
+      hostIPC: true
+      hostNetwork: true
+      hostPID: true
+      serviceAccountName: meshnet
+      terminationGracePeriodSeconds: 30
+      tolerations:
+        - effect: NoSchedule
+          operator: Exists
+      volumes:
+        - hostPath:
+            path: /opt/cni/bin
+          name: cni-bin
+        - hostPath:
+            path: /etc/cni/net.d
+          name: cni-cfg
+        - hostPath:
+            path: /var/run/netns
+          name: var-run-netns
