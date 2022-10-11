@@ -45,6 +45,9 @@ to run some workload beyond the scope of this guide:
 * At least 1 GBit/s network interfaces on all nodes
 * Cluster administrator permissions
 
+> If you run your nodes on a hypervisor, make sure to pass-trough the hosts CPU
+> information as features such as SSSE3 are required to run traffic generation.
+
 You also will be able to use a much smaller setup but it would significantly
 impact performance and should only be used for evaluation.
 
@@ -151,6 +154,9 @@ echo "name: \"$namespace\"" >> $tmp_dir/topologies/3-node-ceos.pb.txt
 kne create $tmp_dir/topologies/3-node-ceos.pb.txt --kubecfg $KUBECONFIG
 ```
 
+> Do not interrupt the last command. It can take minutes until it finished. Just
+> wait.
+
 Verify that the virtual instances are working:
 
 ```bash
@@ -213,6 +219,9 @@ echo "name: \"$namespace\"" >> $tmp_dir/topologies/3-node-ceos-with-traffic.pb.t
 kne create $tmp_dir/topologies/3-node-ceos-with-traffic.pb.txt --kubecfg $KUBECONFIG
 ```
 
+> Do not interrupt the last command. It can take minutes until it finished. Just
+> wait.
+
 Where:
 
 * `$KUBECONFIG` - List of paths to configuration files used to configure access
@@ -223,14 +232,17 @@ Accessing the nodes:
 ```bash
 oc get services -n $namespace
 NAME                           TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)                                     AGE
-service-gnmi-otg-controller    LoadBalancer   172.30.189.156   <REDACTED>    50051:31073/TCP                             1m
-service-grpc-otg-controller    LoadBalancer   172.30.85.47     <REDACTED>    40051:30137/TCP                             1m
-service-https-otg-controller   LoadBalancer   172.30.125.200   <REDACTED>    443:30903/TCP                               1m
-service-otg-port-eth1          LoadBalancer   172.30.82.179    <REDACTED>    5555:30081/TCP,50071:31381/TCP              1m
-service-otg-port-eth2          LoadBalancer   172.30.30.247    <REDACTED>    5555:31032/TCP,50071:32591/TCP              1m
-service-r1                     LoadBalancer   172.30.137.76    <REDACTED>    443:32511/TCP,22:31692/TCP,6030:32185/TCP   1m
-service-r2                     LoadBalancer   172.30.197.125   <REDACTED>    443:31446/TCP,22:30730/TCP,6030:32575/TCP   1m
-service-r3                     LoadBalancer   172.30.135.159   <REDACTED>    443:30206/TCP,22:30048/TCP,6030:30450/TCP   1m
+service-gnmi-otg-controller    LoadBalancer   172.30.32.208    <REDACTED>    50051:31896/TCP                             28s
+service-grpc-otg-controller    LoadBalancer   172.30.20.167    <REDACTED>    40051:31413/TCP                             28s
+service-https-otg-controller   LoadBalancer   172.30.137.206   <REDACTED>    443:31996/TCP                               28s
+service-otg-port-eth1          LoadBalancer   172.30.229.67    <REDACTED>    5555:30235/TCP,50071:30674/TCP              27s
+service-otg-port-eth2          LoadBalancer   172.30.160.246   <REDACTED>    5555:30714/TCP,50071:32653/TCP              27s
+service-otg-port-eth3          LoadBalancer   172.30.43.246    <REDACTED>    5555:30232/TCP,50071:31201/TCP              28s
+service-otg-port-eth4          LoadBalancer   172.30.164.93    <REDACTED>    5555:30752/TCP,50071:32388/TCP              28s
+service-otg-port-eth5          LoadBalancer   172.30.191.199   <REDACTED>    5555:32621/TCP,50071:32705/TCP              27s
+service-r1                     LoadBalancer   172.30.203.182   <REDACTED>    443:31420/TCP,22:32358/TCP,6030:31958/TCP   29s
+service-r2                     LoadBalancer   172.30.23.251    <REDACTED>    22:32103/TCP,6030:32362/TCP,443:32467/TCP   28s
+service-r3                     LoadBalancer   172.30.61.134    <REDACTED>     443:31661/TCP,22:32477/TCP,6030:32122/TCP   28s
 ```
 
 You can access each node and the traffic generator through its `CLUSTER-IP` and

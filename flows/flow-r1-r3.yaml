@@ -1,0 +1,48 @@
+flows:
+  - name: p1>p2
+    duration:
+      choice: fixed_packets
+      fixed_packets:
+        gap: 12
+        packets: 1000
+    rate:
+      choice: pps
+      pps: 1000
+    size:
+      choice: fixed
+      fixed: 512
+    metrics:
+      enable: true
+      loss: false
+      timestamps: false
+    tx_rx:
+      choice: port
+      port:
+        tx_name: p1
+        rx_name: p2
+  - name: p2>p1
+    duration:
+      choice: fixed_packets
+      fixed_packets:
+        gap: 12
+        packets: 500
+    rate:
+      choice: pps
+      pps: 1000
+    size:
+      choice: fixed
+      fixed: 512
+    metrics:
+      enable: true
+      loss: false
+      timestamps: false
+    tx_rx:
+      choice: port
+      port:
+        tx_name: p2
+        rx_name: p1
+ports:
+  - location: eth4
+    name: p1
+  - location: eth5
+    name: p2

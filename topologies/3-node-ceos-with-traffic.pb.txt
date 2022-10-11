@@ -136,8 +136,21 @@ links: {
     z_int: "eth1"
 }
 links: {
-    a_node: "r3"
+    a_node: "r2"
     a_int: "eth9"
     z_node: "otg"
     z_int: "eth2"
+}
+links: {
+    a_node: "r3"
+    a_int: "eth9"
+    z_node: "otg"
+    z_int: "eth3"
+}
+
+links: {
+    a_node: "otg"
+    a_int: "eth4"
+    z_node: "otg"
+    z_int: "eth5"
 }

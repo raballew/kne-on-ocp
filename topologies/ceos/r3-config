@@ -88,6 +88,7 @@ router bgp 1
 router isis default
    no hello padding
    net 49.0001.1010.1040.1032.00
+   router-id ipv4 2.2.2.3
    is-type level-2
    !
    address-family ipv4 unicast
