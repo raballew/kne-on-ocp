@@ -130,3 +130,5 @@ ports:
     name: eth1
   - location: eth2
     name: eth2
+  - location: eth3
+    name: eth3
