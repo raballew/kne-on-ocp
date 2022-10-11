@@ -347,6 +347,27 @@ sleep 1m
 oc delete jobs --all -n $namespace
 oc create -f flows/job-flow-r1-r2-r3.yaml -n $namespace
 oc get job -l flow=r1-r2-r3 -o name | xargs oc logs -f
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100  2342  100  2342    0     0   9840      0 --:--:-- --:--:-- --:--:--  9881
+time="2022-10-11T20:45:56Z" level=info msg="Applying OTG config..."
+time="2022-10-11T20:46:01Z" level=info msg=ready.
+time="2022-10-11T20:46:01Z" level=info msg="Starting traffic..."
+time="2022-10-11T20:46:01Z" level=info msg=started...
+time="2022-10-11T20:46:01Z" level=info msg="Total packets to transmit: 3000, ETA is: 0s\n"
++-----------+-----------+-----------+
++-----------+-----------+-----------+
+|   NAME    | FRAMES TX | FRAMES RX |
++-----------+-----------+-----------+
+| eth1>eth3 |       500 |       500 |
+| eth2>eth1 |       500 |       500 |
+| eth2>eth3 |       500 |       500 |
+| eth3>eth1 |       500 |       500 |
+| eth3>eth2 |       500 |       500 |
+| eth1>eth2 |       500 |       500 |
++-----------+-----------+-----------+
+
+time="2022-10-11T20:46:04Z" level=info msg=stopped.
 ```
 
 If you are finished with testing, as a last step delete the topology:
