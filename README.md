@@ -218,6 +218,44 @@ Where:
 * `$KUBECONFIG` - List of paths to configuration files used to configure access
   to a cluster
 
+Accessing the nodes:
+
+```bash
+oc get services -n $namespace
+NAME                           TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)                                     AGE
+service-gnmi-otg-controller    LoadBalancer   172.30.189.156   <REDACTED>    50051:31073/TCP                             1m
+service-grpc-otg-controller    LoadBalancer   172.30.85.47     <REDACTED>    40051:30137/TCP                             1m
+service-https-otg-controller   LoadBalancer   172.30.125.200   <REDACTED>    443:30903/TCP                               1m
+service-otg-port-eth1          LoadBalancer   172.30.82.179    <REDACTED>    5555:30081/TCP,50071:31381/TCP              1m
+service-otg-port-eth2          LoadBalancer   172.30.30.247    <REDACTED>    5555:31032/TCP,50071:32591/TCP              1m
+service-r1                     LoadBalancer   172.30.137.76    <REDACTED>    443:32511/TCP,22:31692/TCP,6030:32185/TCP   1m
+service-r2                     LoadBalancer   172.30.197.125   <REDACTED>    443:31446/TCP,22:30730/TCP,6030:32575/TCP   1m
+service-r3                     LoadBalancer   172.30.135.159   <REDACTED>    443:30206/TCP,22:30048/TCP,6030:30450/TCP   1m
+```
+
+You can access each node and the traffic generator through its `CLUSTER-IP` and
+`EXTERNAL-IP` depending on your setup. Additionally you could use the Kubernetes
+DNS service to access each service via its DNS A record
+(`<svc>.<namespace>.svc.cluster.local`).
+
+As of now a topology consisting of several switches and a reference
+implementation of the [Open Traffic Generator
+API](https://github.com/open-traffic-generator/models) has been deployed with
+the [IXIA-C traffic
+generator](https://github.com/open-traffic-generator/ixia-c). In order to
+generate traffic test scripts are written in
+[snappi](https://github.com/open-traffic-generator/snappi) and executed against
+the IXIA-C service (`*-otg-controller` services as shown above). Another way of
+running tests is by using the [Open Traffic Generator CLI
+Tool](https://github.com/open-traffic-generator/otgen), which we for simplicity
+will use in the next step.
+
+Deploy a job that triggers a workflow for generating traffic:
+
+```bash
+oc apply -f manifests/ixiatg-test.yaml -n $namespace
+```
+
 Delete the topology:
 
 ```bash

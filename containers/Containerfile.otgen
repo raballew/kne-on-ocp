@@ -1,0 +1,9 @@
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.6
+
+RUN microdnf install tar gzip && \
+    curl -L https://github.com/open-traffic-generator/otgen/releases/download/v0.2.0/otgen_0.2.0_Linux_x86_64.tar.gz > otgen.tar.gz && \
+    tar -xf /otgen.tar.gz -C /usr/bin/ && \
+    rm -rf /otgen.tar.gz && \
+    rm -rf /usr/bin/LICENSE && \
+    rm -rf /usr/bin/README.md && \
+    microdnf remove tar gzip

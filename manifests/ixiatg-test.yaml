@@ -1,0 +1,16 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generateName: generate-traffic-
+spec:
+  template:
+    spec:
+      containers:
+        - name: otgen
+          image: quay.io/pwallrab/otgen:0.1.0
+          command:
+            [
+              "otgen create tcp -s 1.1.1.1 -d 2.2.2.2 -p 80 --rate 1000pps | otgen run --api https://service-https-otg-controller --insecure --metrics flow | otgen transform --metrics flow --counters frames | otgen display --mode table",
+            ]
+      restartPolicy: Never
+  backoffLimit: 3
