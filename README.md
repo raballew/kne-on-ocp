@@ -22,9 +22,11 @@ the official documentation is a bit lacking.
 This documents will guide you through setting up KNE on [OpenShift
 (OCP)][openshift-docs] (or on [OKD][okd-docs] respectively) in the first step.
 Then you will use the KNE cluster to create and interact with your own topology
-based on Arista cEOS. In the last step you will set up a minimal CI workflow
-based on [Tekton][tekton] using a virtual instance to pre-validate hardware
-tests.
+based on Arista cEOS. In the last step you will set up a minimal workflow using
+a simple job and virtual instances to pre-validate hardware tests. This should
+give you a good understanding of what virtual testing is all about and allow you
+to adopt this concept to more complex workflow leveraging tools such as
+[Tekton][tekton] or GitHub actions.
 
 If you struggling to setup an OKD cluster, you might want to follow [this
 guide][okd-the-hard-way] to learn it the hard way.
@@ -156,7 +158,7 @@ kne create $tmp_dir/topologies/3-node-ceos.pb.txt --kubecfg $KUBECONFIG
 ```
 
 > Do not interrupt the last command. It can take minutes until it finished. Just
-> wait.
+> be patient and wait.
 
 Verify that the virtual instances are working:
 
@@ -269,7 +271,7 @@ frames received equals the number of frames send. This indicates the this
 particular connection works fine.
 
 ```bash
-oc get job -l flow=otg-otg -o name | xargs oc logs
+oc get job -l flow=otg-otg -o name | xargs oc logs -f
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
 100   805  100   805    0     0   3120      0 --:--:-- --:--:-- --:--:--  3120
@@ -277,12 +279,12 @@ time="2022-10-11T19:57:53Z" level=info msg="Applying OTG config..."
 time="2022-10-11T19:57:53Z" level=info msg=ready.
 time="2022-10-11T19:57:53Z" level=info msg="Starting traffic..."
 time="2022-10-11T19:57:53Z" level=info msg=started...
-time="2022-10-11T19:57:53Z" level=info msg="Total packets to transmit: 1500, ETA is: 1s\n"
+time="2022-10-11T19:57:53Z" level=info msg="Total packets to transmit: 1000, ETA is: 1s\n"
 +-----------+-----------+-----------+
 +-----------+-----------+-----------+
 |   NAME    | FRAMES TX | FRAMES RX |
 +-----------+-----------+-----------+
-| eth4>eth5 |      1000 |      1000 |
+| eth4>eth5 |       500 |       500 |
 | eth5>eth4 |       500 |       500 |
 +-----------+-----------+-----------+
 
@@ -300,10 +302,32 @@ output as in the previous flow.
 oc create -f flows/job-flow-r1-r2-r3.yaml -n $namespace
 ```
 
-When inspecting the logs it becomes clear that something is broken because
+When inspecting the logs it becomes clear that something is broken because no
+frames are being received.
 
 ```bash
-oc get job -l flow=r1-r2-r3 -o name | xargs oc logs
+oc get job -l flow=r1-r2-r3 -o name | xargs oc logs -f
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100  2344  100  2344    0     0  66971      0 --:--:-- --:--:-- --:--:-- 68941
+time="2022-10-11T20:22:12Z" level=info msg="Applying OTG config..."
+time="2022-10-11T20:22:53Z" level=info msg=ready.
+time="2022-10-11T20:22:53Z" level=info msg="Starting traffic..."
+time="2022-10-11T20:22:53Z" level=info msg=started...
+time="2022-10-11T20:22:53Z" level=info msg="Total packets to transmit: 4000, ETA is: 1s\n"
++-----------+-----------+-----------+
++-----------+-----------+-----------+
+|   NAME    | FRAMES TX | FRAMES RX |
++-----------+-----------+-----------+
+| eth1>eth2 |      1000 |         0 |
+| eth1>eth3 |      1000 |         0 |
+| eth2>eth1 |       500 |         0 |
+| eth2>eth3 |       500 |         0 |
+| eth3>eth1 |       500 |         0 |
+| eth3>eth2 |       500 |         0 |
++-----------+-----------+-----------+
+
+time="2022-10-11T20:22:59Z" level=info msg=stopped.
 ```
 
 Delete the topology:
