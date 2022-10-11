@@ -128,17 +128,13 @@ setup KNE.
 ## Create topology
 
 Some vendors provide a controller that handles the pod lifecycle for their
-nodes. If you did not specify these in your deployment configuration, you will
-need to manually create them before deploying a topology. For cEOS Arista
-provides a controller that handles the pod lifecycle for their nodes.
+nodes. For cEOS Arista provides a controller.
 
 Deploy the Arista controller:
 
 ```bash
-oc apply -f https://raw.githubusercontent.com/aristanetworks/arista-ceoslab-operator/main/config/kustomized/manifest.yaml
+oc apply -f https://raw.githubusercontent.com/aristanetworks/arista-ceoslab-operator/v1.0.2/config/kustomized/manifest.yaml
 ```
-
-Additionally, Keysight provides an operator for traffic generation as well.
 
 Make sure the correct `image` is set for `ARISTA_CEOS` nodes in
 [3-node-ceos.pb.txt](/topologies/3-node-ceos.pb.txt) if you use a different
@@ -174,11 +170,68 @@ Where:
 * `$KUBECONFIG` - List of paths to configuration files used to configure access
   to a cluster
 
+## Traffic generation
+
+IXIA offers an operator that through a CRD allows the deployment of a modern,
+powerful and API-driven traffic generator.
+
+Install the IXIA traffic generator:
+
+```bash
+oc apply -f https://github.com/open-traffic-generator/ixia-c-operator/releases/download/v0.2.2/ixiatg-operator.yaml
+# Fixes https://github.com/open-traffic-generator/ixia-c-operator/issues/15
+oc set resources deployment ixiatg-op-controller-manager -n ixiatg-op-system --limits memory=200Mi
+```
+
+> For the deployment of IXIA with custom images the version for nodes of type
+> `IXIA_TG` specified in
+> [3-node-ceos-with-traffic.pb.txt](/topologies/3-node-ceos-with-traffic.pb.txt)
+> needs to match the release value at `.spec.data.versions` in
+> [config.yaml](/manifests/ixiatg/config.yaml). If you want to use a different
+> version, make sure to adjust both files accordingly before applying them to
+> the cluster. The latest upstream version of this configuration are published
+> via [ixia-c-operator
+> releases](https://github.com/open-traffic-generator/ixia-c/releases/).
+
+Configure the usage of public available container images:
+
+```bash
+oc apply -f manifests/ixiatg/config.yaml
+```
+
+Deploy a topology with traffic generation into a new namespace:
+
+```bash
+namespace=3-node-ceos-with-traffic
+oc create namespace $namespace
+# Fixes https://github.com/open-traffic-generator/ixia-c-operator/issues/18
+oc apply -f manifests/ixiatg/rbac.yaml -n $namespace
+tmp_dir=$(mktemp -d)
+cp -r topologies/ $tmp_dir
+echo "name: \"$namespace\"" >> $tmp_dir/topologies/3-node-ceos-with-traffic.pb.txt
+kne create $tmp_dir/topologies/3-node-ceos-with-traffic.pb.txt --kubecfg $KUBECONFIG
+```
+
+Where:
+
+* `$KUBECONFIG` - List of paths to configuration files used to configure access
+  to a cluster
+
+Delete the topology:
+
+```bash
+oc delete namespace $namespace
+```
+
 ## Limitations
 
 IXIA traffic generation as described in the [KNE examples][kne-examples] does
-not seem to work on OpenShift as IXIA requires additional privileges and seem to
-have problems handling arbitrary UID which are enforced on OpenShift.
+not seem to work on OpenShift out of the box as IXIA requires additional
+privileges and seem to have problems handling arbitrary UID which are enforced
+on OpenShift. Due to this, containers images have been rebuilt and a bunch of
+patches have been applied to overcome these shortcomings. In order to setup a
+production environment you should reach out to Keysight for a professional
+solution.
 
 [kne]: https://github.com/openconfig/kne
 [kne-docs]: https://github.com/openconfig/kne/blob/main/docs/setup.md
