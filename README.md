@@ -44,6 +44,7 @@ to run some workload beyond the scope of this guide:
 * At least 32 GB of RAM per worker node
 * At least 1 GBit/s network interfaces on all nodes
 * Cluster administrator permissions
+* Internet access
 
 > If you run your nodes on a hypervisor, make sure to pass-trough the hosts CPU
 > information as features such as SSSE3 are required to run traffic generation.
@@ -257,15 +258,15 @@ will use in the next step.
 
 Deploy a job that triggers a workflow where traffic flows trough a direct
 connection between two ports (`eth4` and `eth5`) on the traffic generator
-instance:
+instance (`otg`):
 
 ```bash
 oc create -f flows/job-flow-otg-otg.yaml -n $namespace
 ```
 
-By inspecting the logs, for each flow `p1>p2` and `p2>p1` the number of frames
-received equals the number of frames send. This indicates the this particular
-connection works fine.
+By inspecting the logs, for each flow `eth4>eth5` and `eth5>eth4` the number of
+frames received equals the number of frames send. This indicates the this
+particular connection works fine.
 
 ```bash
 oc get job -l flow=otg-otg -o name | xargs oc logs
@@ -277,13 +278,13 @@ time="2022-10-11T19:57:53Z" level=info msg=ready.
 time="2022-10-11T19:57:53Z" level=info msg="Starting traffic..."
 time="2022-10-11T19:57:53Z" level=info msg=started...
 time="2022-10-11T19:57:53Z" level=info msg="Total packets to transmit: 1500, ETA is: 1s\n"
-+-------+-----------+-----------+
-+-------+-----------+-----------+
-| NAME  | FRAMES TX | FRAMES RX |
-+-------+-----------+-----------+
-| p1>p2 |      1000 |      1000 |
-| p2>p1 |       500 |       500 |
-+-------+-----------+-----------+
++-----------+-----------+-----------+
++-----------+-----------+-----------+
+|   NAME    | FRAMES TX | FRAMES RX |
++-----------+-----------+-----------+
+| eth4>eth5 |      1000 |      1000 |
+| eth5>eth4 |       500 |       500 |
++-----------+-----------+-----------+
 
 time="2022-10-11T19:57:56Z" level=info msg=stopped.
 ```
@@ -297,6 +298,12 @@ output as in the previous flow.
 
 ```bash
 oc create -f flows/job-flow-r1-r2-r3.yaml -n $namespace
+```
+
+When inspecting the logs it becomes clear that something is broken because
+
+```bash
+oc get job -l flow=r1-r2-r3 -o name | xargs oc logs
 ```
 
 Delete the topology:
