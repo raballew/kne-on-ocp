@@ -1,5 +1,5 @@
 flows:
-  - name: p1>p2
+  - name: eth4>eth5
     duration:
       choice: fixed_packets
       fixed_packets:
@@ -18,9 +18,9 @@ flows:
     tx_rx:
       choice: port
       port:
-        tx_name: p1
-        rx_name: p2
-  - name: p2>p1
+        tx_name: eth4
+        rx_name: eth5
+  - name: eth5>eth4
     duration:
       choice: fixed_packets
       fixed_packets:
@@ -39,10 +39,10 @@ flows:
     tx_rx:
       choice: port
       port:
-        tx_name: p2
-        rx_name: p1
+        tx_name: eth5
+        rx_name: eth4
 ports:
   - location: eth4
-    name: p1
+    name: eth4
   - location: eth5
-    name: p2
+    name: eth5

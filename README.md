@@ -160,9 +160,24 @@ kne create $tmp_dir/topologies/3-node-ceos.pb.txt --kubecfg $KUBECONFIG
 Verify that the virtual instances are working:
 
 ```bash
-oc exec -it -n $namespace r1 -- Cli -c "show bgp instance"
-oc exec -it -n $namespace r2 -- Cli -c "show bgp instance"
-oc exec -it -n $namespace r3 -- Cli -c "show bgp instance"
+oc exec -it -n $namespace r1 -- Cli -c "show bgp statistics"
+oc exec -it -n $namespace r2 -- Cli -c "show bgp statistics"
+oc exec -it -n $namespace r3 -- Cli -c "show bgp statistics"
+```
+
+> If you check the output you will realize that BGP does not seem to work
+> properly, as on each virtual instance shows that `2 neighbors are in Connect
+> state`. This was done on purpose to and will be fixed later on.
+
+You can also access each node by using their external or cluster IP address.
+Additionally you could use the Kubernetes DNS service to access each service via
+its DNS A record (`<svc>.<namespace>.svc.cluster.local`).:
+
+```bash
+oc get services -n $namespace
+service-r1                     LoadBalancer   172.30.203.182   <REDACTED>    443:31420/TCP,22:32358/TCP,6030:31958/TCP   29s
+service-r2                     LoadBalancer   172.30.23.251    <REDACTED>    22:32103/TCP,6030:32362/TCP,443:32467/TCP   28s
+service-r3                     LoadBalancer   172.30.61.134    <REDACTED>     443:31661/TCP,22:32477/TCP,6030:32122/TCP   28s
 ```
 
 Delete the topology:
@@ -205,7 +220,8 @@ Configure the usage of public available container images:
 oc apply -f manifests/ixiatg/config.yaml
 ```
 
-Deploy a topology with traffic generation into a new namespace:
+Deploy the same topology enhanced with traffic generation services into a new
+namespace:
 
 ```bash
 namespace=3-node-ceos-with-traffic
@@ -227,29 +243,6 @@ Where:
 * `$KUBECONFIG` - List of paths to configuration files used to configure access
   to a cluster
 
-Accessing the nodes:
-
-```bash
-oc get services -n $namespace
-NAME                           TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)                                     AGE
-service-gnmi-otg-controller    LoadBalancer   172.30.32.208    <REDACTED>    50051:31896/TCP                             28s
-service-grpc-otg-controller    LoadBalancer   172.30.20.167    <REDACTED>    40051:31413/TCP                             28s
-service-https-otg-controller   LoadBalancer   172.30.137.206   <REDACTED>    443:31996/TCP                               28s
-service-otg-port-eth1          LoadBalancer   172.30.229.67    <REDACTED>    5555:30235/TCP,50071:30674/TCP              27s
-service-otg-port-eth2          LoadBalancer   172.30.160.246   <REDACTED>    5555:30714/TCP,50071:32653/TCP              27s
-service-otg-port-eth3          LoadBalancer   172.30.43.246    <REDACTED>    5555:30232/TCP,50071:31201/TCP              28s
-service-otg-port-eth4          LoadBalancer   172.30.164.93    <REDACTED>    5555:30752/TCP,50071:32388/TCP              28s
-service-otg-port-eth5          LoadBalancer   172.30.191.199   <REDACTED>    5555:32621/TCP,50071:32705/TCP              27s
-service-r1                     LoadBalancer   172.30.203.182   <REDACTED>    443:31420/TCP,22:32358/TCP,6030:31958/TCP   29s
-service-r2                     LoadBalancer   172.30.23.251    <REDACTED>    22:32103/TCP,6030:32362/TCP,443:32467/TCP   28s
-service-r3                     LoadBalancer   172.30.61.134    <REDACTED>     443:31661/TCP,22:32477/TCP,6030:32122/TCP   28s
-```
-
-You can access each node and the traffic generator through its `CLUSTER-IP` and
-`EXTERNAL-IP` depending on your setup. Additionally you could use the Kubernetes
-DNS service to access each service via its DNS A record
-(`<svc>.<namespace>.svc.cluster.local`).
-
 As of now a topology consisting of several switches and a reference
 implementation of the [Open Traffic Generator
 API](https://github.com/open-traffic-generator/models) has been deployed with
@@ -262,10 +255,48 @@ running tests is by using the [Open Traffic Generator CLI
 Tool](https://github.com/open-traffic-generator/otgen), which we for simplicity
 will use in the next step.
 
-Deploy a job that triggers a workflow for generating traffic:
+Deploy a job that triggers a workflow where traffic flows trough a direct
+connection between two ports (`eth4` and `eth5`) on the traffic generator
+instance:
 
 ```bash
-oc apply -f manifests/ixiatg-test.yaml -n $namespace
+oc create -f flows/job-flow-otg-otg.yaml -n $namespace
+```
+
+By inspecting the logs, for each flow `p1>p2` and `p2>p1` the number of frames
+received equals the number of frames send. This indicates the this particular
+connection works fine.
+
+```bash
+oc get job -l flow=otg-otg -o name | xargs oc logs
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   805  100   805    0     0   3120      0 --:--:-- --:--:-- --:--:--  3120
+time="2022-10-11T19:57:53Z" level=info msg="Applying OTG config..."
+time="2022-10-11T19:57:53Z" level=info msg=ready.
+time="2022-10-11T19:57:53Z" level=info msg="Starting traffic..."
+time="2022-10-11T19:57:53Z" level=info msg=started...
+time="2022-10-11T19:57:53Z" level=info msg="Total packets to transmit: 1500, ETA is: 1s\n"
++-------+-----------+-----------+
++-------+-----------+-----------+
+| NAME  | FRAMES TX | FRAMES RX |
++-------+-----------+-----------+
+| p1>p2 |      1000 |      1000 |
+| p2>p1 |       500 |       500 |
++-------+-----------+-----------+
+
+time="2022-10-11T19:57:56Z" level=info msg=stopped.
+```
+
+Lets try something more complex and see if the network configuration actually
+works. This could be done by running a flow that tries to send traffic from
+ports `eth1` (connected to virtual instance `r1`), `eth2` (connected to virtual
+instance `r2`) and `eth3` (connected to virtual instance `r3`) to each other. In
+theory, if everything is configured properly, this should create a similar
+output as in the previous flow.
+
+```bash
+oc create -f flows/job-flow-r1-r2-r3.yaml -n $namespace
 ```
 
 Delete the topology:

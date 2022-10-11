@@ -1,0 +1,132 @@
+flows:
+  - name: eth1>eth2
+    duration:
+      choice: fixed_packets
+      fixed_packets:
+        gap: 12
+        packets: 1000
+    rate:
+      choice: pps
+      pps: 1000
+    size:
+      choice: fixed
+      fixed: 512
+    metrics:
+      enable: true
+      loss: false
+      timestamps: false
+    tx_rx:
+      choice: port
+      port:
+        tx_name: eth1
+        rx_name: eth2
+  - name: eth1>eth3
+    duration:
+      choice: fixed_packets
+      fixed_packets:
+        gap: 12
+        packets: 1000
+    rate:
+      choice: pps
+      pps: 1000
+    size:
+      choice: fixed
+      fixed: 512
+    metrics:
+      enable: true
+      loss: false
+      timestamps: false
+    tx_rx:
+      choice: port
+      port:
+        tx_name: eth1
+        rx_name: eth3
+  - name: eth2>eth1
+    duration:
+      choice: fixed_packets
+      fixed_packets:
+        gap: 12
+        packets: 500
+    rate:
+      choice: pps
+      pps: 1000
+    size:
+      choice: fixed
+      fixed: 512
+    metrics:
+      enable: true
+      loss: false
+      timestamps: false
+    tx_rx:
+      choice: port
+      port:
+        tx_name: eth2
+        rx_name: eth1
+  - name: eth2>eth3
+    duration:
+      choice: fixed_packets
+      fixed_packets:
+        gap: 12
+        packets: 500
+    rate:
+      choice: pps
+      pps: 1000
+    size:
+      choice: fixed
+      fixed: 512
+    metrics:
+      enable: true
+      loss: false
+      timestamps: false
+    tx_rx:
+      choice: port
+      port:
+        tx_name: eth2
+        rx_name: eth3
+  - name: eth3>eth1
+    duration:
+      choice: fixed_packets
+      fixed_packets:
+        gap: 12
+        packets: 500
+    rate:
+      choice: pps
+      pps: 1000
+    size:
+      choice: fixed
+      fixed: 512
+    metrics:
+      enable: true
+      loss: false
+      timestamps: false
+    tx_rx:
+      choice: port
+      port:
+        tx_name: eth3
+        rx_name: eth1
+  - name: eth3>eth2
+    duration:
+      choice: fixed_packets
+      fixed_packets:
+        gap: 12
+        packets: 500
+    rate:
+      choice: pps
+      pps: 1000
+    size:
+      choice: fixed
+      fixed: 512
+    metrics:
+      enable: true
+      loss: false
+      timestamps: false
+    tx_rx:
+      choice: port
+      port:
+        tx_name: eth3
+        rx_name: eth2
+ports:
+  - location: eth1
+    name: eth1
+  - location: eth2
+    name: eth2

@@ -3,6 +3,8 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   generateName: flow-otg-otg-
+  labels:
+    flow: otg-otg
 spec:
   backoffLimit: 1
   template:
@@ -12,7 +14,7 @@ spec:
             - /bin/sh
             - "-c"
             - |
-              curl -L https://github.com/open-traffic-generator/otgen/releases/download/v0.2.0/otgen_0.2.0_Linux_x86_64.tar.gz > otg.yaml
+              curl -L https://raw.githubusercontent.com/raballew/kne-on-ocp/main/flows/flow-otg-otg.yaml > otg.yaml
               otgen run --file otg.yaml --api https://service-https-otg-controller --insecure --metrics flow | otgen transform --metrics flow --counters frames | otgen display --mode table
           image: quay.io/pwallrab/otgen:0.1.0
           name: otgen
