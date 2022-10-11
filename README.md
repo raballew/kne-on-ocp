@@ -314,13 +314,13 @@ time="2022-10-11T20:22:12Z" level=info msg="Applying OTG config..."
 time="2022-10-11T20:22:53Z" level=info msg=ready.
 time="2022-10-11T20:22:53Z" level=info msg="Starting traffic..."
 time="2022-10-11T20:22:53Z" level=info msg=started...
-time="2022-10-11T20:22:53Z" level=info msg="Total packets to transmit: 4000, ETA is: 1s\n"
+time="2022-10-11T20:22:53Z" level=info msg="Total packets to transmit: 3000, ETA is: 1s\n"
 +-----------+-----------+-----------+
 +-----------+-----------+-----------+
 |   NAME    | FRAMES TX | FRAMES RX |
 +-----------+-----------+-----------+
-| eth1>eth2 |      1000 |         0 |
-| eth1>eth3 |      1000 |         0 |
+| eth1>eth2 |       500 |         0 |
+| eth1>eth3 |       500 |         0 |
 | eth2>eth1 |       500 |         0 |
 | eth2>eth3 |       500 |         0 |
 | eth3>eth1 |       500 |         0 |
@@ -330,13 +330,36 @@ time="2022-10-11T20:22:53Z" level=info msg="Total packets to transmit: 4000, ETA
 time="2022-10-11T20:22:59Z" level=info msg=stopped.
 ```
 
-Delete the topology:
+Lets fix this by pushing a valid configuration to each virtual instance:
+
+```bash
+kne topology push topologies/3-node-ceos-with-traffic.pb.txt r1 topologies/ceos/r1-config-fixed
+kne topology push topologies/3-node-ceos-with-traffic.pb.txt r2 topologies/ceos/r2-config-fixed
+kne topology push topologies/3-node-ceos-with-traffic.pb.txt r3 topologies/ceos/r3-config-fixed
+```
+
+Then wait for a few minutes as BGP requires some time to configure, clean-up the
+previous jobs and rerun the test, which should generate valid results where the
+number of transmitted equals the number of received frames:
+
+```bash
+sleep 1m
+oc delete jobs --all -n $namespace
+oc create -f flows/job-flow-r1-r2-r3.yaml -n $namespace
+oc get job -l flow=r1-r2-r3 -o name | xargs oc logs -f
+```
+
+If you are finished with testing, as a last step delete the topology:
 
 ```bash
 oc delete namespace $namespace
 ```
 
 ## Limitations
+
+KNE itself is still under development and lacks some convenience feature such as
+deploying a topology into a specific namespace or taking into account the
+current context set in the kubeconfig files.
 
 IXIA traffic generation as described in the [KNE examples][kne-examples] does
 not seem to work on OpenShift out of the box as IXIA requires additional
