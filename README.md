@@ -205,6 +205,7 @@ Deploy a topology with traffic generation into a new namespace:
 namespace=3-node-ceos-with-traffic
 oc create namespace $namespace
 # Fixes https://github.com/open-traffic-generator/ixia-c-operator/issues/18
+# Fixes https://github.com/open-traffic-generator/ixia-c-operator/issues/19
 oc apply -f manifests/ixiatg/rbac.yaml -n $namespace
 tmp_dir=$(mktemp -d)
 cp -r topologies/ $tmp_dir
@@ -228,10 +229,10 @@ oc delete namespace $namespace
 IXIA traffic generation as described in the [KNE examples][kne-examples] does
 not seem to work on OpenShift out of the box as IXIA requires additional
 privileges and seem to have problems handling arbitrary UID which are enforced
-on OpenShift. Due to this, containers images have been rebuilt and a bunch of
-patches have been applied to overcome these shortcomings. In order to setup a
-production environment you should reach out to Keysight for a professional
-solution.
+by OpenShift. Due to this, containers images have been rebuilt and a bunch of
+patches have been applied to overcome these shortcomings. Keep in mind, that
+before considering going into production with this a bunch of changes need to
+happen upstream first.
 
 [kne]: https://github.com/openconfig/kne
 [kne-docs]: https://github.com/openconfig/kne/blob/main/docs/setup.md
