@@ -333,9 +333,9 @@ time="2022-10-11T20:22:59Z" level=info msg=stopped.
 Lets fix this by pushing a valid configuration to each virtual instance:
 
 ```bash
-kne topology push topologies/3-node-ceos-with-traffic.pb.txt r1 topologies/ceos/r1-config-fixed
-kne topology push topologies/3-node-ceos-with-traffic.pb.txt r2 topologies/ceos/r2-config-fixed
-kne topology push topologies/3-node-ceos-with-traffic.pb.txt r3 topologies/ceos/r3-config-fixed
+kne topology push $tmp_dir/topologies/3-node-ceos-with-traffic.pb.txt r1 $tmp_dir/topologies/ceos/r1-config-fixed
+kne topology push $tmp_dir/topologies/3-node-ceos-with-traffic.pb.txt r2 $tmp_dir/topologies/ceos/r2-config-fixed
+kne topology push $tmp_dir/topologies/3-node-ceos-with-traffic.pb.txt r3 $tmp_dir/topologies/ceos/r3-config-fixed
 ```
 
 Then wait for a few minutes as BGP requires some time to configure, clean-up the
