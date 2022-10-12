@@ -175,7 +175,7 @@ oc exec -it -n $namespace r3 -- Cli -c "show bgp statistics"
 ```
 
 > If you check the output you will realize that BGP does not seem to work
-> properly, as on each virtual instance shows that `2 neighbors are in Connect
+> properly, as each virtual instance shows that `2 neighbors are in Connect
 > state`. This was done on purpose and will be fixed in one of the next steps.
 
 You can also access each virtual instance by using their external or cluster IP
