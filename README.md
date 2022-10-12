@@ -180,7 +180,7 @@ oc exec -it -n $namespace r3 -- Cli -c "show bgp statistics"
 
 You can also access each virtual instance by using their external or cluster IP
 address. Additionally you could use the Kubernetes DNS service to access each
-service via its DNS A record (`<svc>.<namespace>.svc.cluster.local`).:
+service via its DNS A record (`<svc>.<namespace>.svc.cluster.local`).
 
 ```bash
 oc get services -n $namespace
@@ -227,8 +227,9 @@ oc apply -f manifests/ixiatg/config.yaml
 [3-node-ceos-with-traffic.pb.txt](/topologies/3-node-ceos-with-traffic.pb.txt)
 uses the same misconfigured topology as
 [3-node-ceos.pb.txt](/topologies/3-node-ceos.pb.txt) but enhanced it with
-services that allow traffic generation. Deploy this topology into a new
-namespace:
+services that allow traffic generation.
+
+Deploy this topology into a new namespace:
 
 ```bash
 namespace=3-node-ceos-with-traffic
