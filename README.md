@@ -383,8 +383,8 @@ oc delete namespace $namespace
 
 ## Limitations
 
-KNE itself is still under development and lacks some convenience feature such as
-deploying a topology into a specific namespace or taking into account the
+KNE itself is still under development and lacks some convenience features such
+as deploying a topology into a specific namespace or taking into account the
 current context set in the kubeconfig files. Additionally KNE deploys pods only,
 which means the entire process described is vulnerable against disruptions such
 as node failures even though there might be good reasons to not restart by using
