@@ -163,7 +163,7 @@ Where:
 * `$KUBECONFIG` - List of paths to configuration files used to configure access
   to a cluster
 
-> Do not interrupt the last command. It can take minutes until it finished. Just
+> Do not interrupt the `kne` command. It can take minutes until it returns. Just
 > be patient and wait.
 
 Verify that the virtual instances are working:
@@ -247,8 +247,8 @@ Where:
 * `$KUBECONFIG` - List of paths to configuration files used to configure access
   to a cluster
 
-> Do not interrupt the last command. It can take minutes until it finished. Just
-> wait.
+> Do not interrupt the `kne` command. It can take minutes until it returns. Just
+> be patient and wait.
 
 Now a topology consisting of several switches and a reference implementation of
 the [Open Traffic Generator
@@ -338,10 +338,18 @@ time="2022-10-11T20:22:59Z" level=info msg=stopped.
 Lets fix this by pushing a valid configuration to each virtual instance:
 
 ```bash
-kne topology push $tmp_dir/topologies/3-node-ceos-with-traffic.pb.txt r1 $tmp_dir/topologies/ceos/r1-config-fixed
-kne topology push $tmp_dir/topologies/3-node-ceos-with-traffic.pb.txt r2 $tmp_dir/topologies/ceos/r2-config-fixed
-kne topology push $tmp_dir/topologies/3-node-ceos-with-traffic.pb.txt r3 $tmp_dir/topologies/ceos/r3-config-fixed
+kne topology push $tmp_dir/topologies/3-node-ceos-with-traffic.pb.txt r1 $tmp_dir/topologies/ceos/r1-config-fixed --kubecfg $KUBECONFIG
+kne topology push $tmp_dir/topologies/3-node-ceos-with-traffic.pb.txt r2 $tmp_dir/topologies/ceos/r2-config-fixed --kubecfg $KUBECONFIG
+kne topology push $tmp_dir/topologies/3-node-ceos-with-traffic.pb.txt r3 $tmp_dir/topologies/ceos/r3-config-fixed --kubecfg $KUBECONFIG
 ```
+
+Where:
+
+* `$KUBECONFIG` - List of paths to configuration files used to configure access
+  to a cluster
+
+> Do not interrupt the `kne` commands. It can take minutes until they return.
+> Just be patient and wait.
 
 Then wait for a few minutes as BGP requires some time to configure itself,
 clean-up the previous jobs and rerun the test. This time valid results should be
