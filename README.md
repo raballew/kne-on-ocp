@@ -276,6 +276,7 @@ particular connection works fine and the traffic generator is operational.
 
 ```bash
 oc get job -l flow=otg-otg -o name -n $namespace | xargs oc logs -n $namespace -f
+
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
 100   805  100   805    0     0   3120      0 --:--:-- --:--:-- --:--:--  3120
@@ -284,7 +285,6 @@ time="2022-10-11T19:57:53Z" level=info msg=ready.
 time="2022-10-11T19:57:53Z" level=info msg="Starting traffic..."
 time="2022-10-11T19:57:53Z" level=info msg=started...
 time="2022-10-11T19:57:53Z" level=info msg="Total packets to transmit: 1000, ETA is: 1s\n"
-+-----------+-----------+-----------+
 +-----------+-----------+-----------+
 |   NAME    | FRAMES TX | FRAMES RX |
 +-----------+-----------+-----------+
@@ -312,6 +312,7 @@ receiving ends.
 
 ```bash
 oc get job -l flow=r1-r2-r3 -o name -n $namespace | xargs oc logs -n $namespace -f
+
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
 100  2344  100  2344    0     0  66971      0 --:--:-- --:--:-- --:--:-- 68941
@@ -320,7 +321,6 @@ time="2022-10-11T20:22:53Z" level=info msg=ready.
 time="2022-10-11T20:22:53Z" level=info msg="Starting traffic..."
 time="2022-10-11T20:22:53Z" level=info msg=started...
 time="2022-10-11T20:22:53Z" level=info msg="Total packets to transmit: 3000, ETA is: 1s\n"
-+-----------+-----------+-----------+
 +-----------+-----------+-----------+
 |   NAME    | FRAMES TX | FRAMES RX |
 +-----------+-----------+-----------+
@@ -361,6 +361,7 @@ sleep 2m
 oc delete jobs --all -n $namespace
 oc create -f flows/job-flow-r1-r2-r3.yaml -n $namespace
 oc get job -l flow=r1-r2-r3 -o name | xargs oc logs -f
+
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
 100  2342  100  2342    0     0   9840      0 --:--:-- --:--:-- --:--:--  9881
@@ -369,7 +370,6 @@ time="2022-10-11T20:46:01Z" level=info msg=ready.
 time="2022-10-11T20:46:01Z" level=info msg="Starting traffic..."
 time="2022-10-11T20:46:01Z" level=info msg=started...
 time="2022-10-11T20:46:01Z" level=info msg="Total packets to transmit: 3000, ETA is: 0s\n"
-+-----------+-----------+-----------+
 +-----------+-----------+-----------+
 |   NAME    | FRAMES TX | FRAMES RX |
 +-----------+-----------+-----------+
@@ -384,7 +384,8 @@ time="2022-10-11T20:46:01Z" level=info msg="Total packets to transmit: 3000, ETA
 time="2022-10-11T20:46:04Z" level=info msg=stopped.
 ```
 
-If you are finished with testing, as a last step delete the topology:
+If you are finished with testing and do not need the topology anymore, delete
+it:
 
 ```bash
 oc delete namespace $namespace
