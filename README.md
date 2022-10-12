@@ -184,6 +184,8 @@ service via its DNS A record (`<svc>.<namespace>.svc.cluster.local`).
 
 ```bash
 oc get services -n $namespace
+
+NAME                           TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)                                     AGE
 service-r1                     LoadBalancer   172.30.203.182   <REDACTED>    443:31420/TCP,22:32358/TCP,6030:31958/TCP   29s
 service-r2                     LoadBalancer   172.30.23.251    <REDACTED>    22:32103/TCP,6030:32362/TCP,443:32467/TCP   28s
 service-r3                     LoadBalancer   172.30.61.134    <REDACTED>    443:31661/TCP,22:32477/TCP,6030:32122/TCP   28s
@@ -313,7 +315,7 @@ oc create -f flows/job-flow-r1-r2-r3.yaml -n $namespace
 ```
 
 When inspecting the logs confirms our assumption because no frames are seen on
-receiving ends.
+any receiving end.
 
 ```bash
 oc get job -l flow=r1-r2-r3 -o name -n $namespace | xargs oc logs -n $namespace -f

@@ -1,3 +1,94 @@
+devices:
+  - name: otgEth1
+    ethernets:
+      - name: otgEth1.eth
+        port_name: eth1
+        mac: "00:00:01:01:01:01"
+        ipv4_addresses:
+          - name: otgEth1.ipv4
+            address: "10.10.10.1"
+            gateway: "10.10.10.2"
+    bgp:
+      router_id: "10.10.10.1"
+      ipv4_interfaces:
+        - ipv4_name: "otgEth1.ipv4"
+          peers:
+            - name: otgEth1.bgp4.peer
+              peer_address: "10.10.10.2"
+              as_number: 1
+              as_type: ebgp
+              v4_routes:
+                - name: otgEth1.bgp4.peer.rr4
+                  next_hop_ipv4_address: "10.10.10.1"
+                  next_hop_address_type: ipv4
+                  next_hop_mode: manual
+                  addresses:
+                    - address: 20.20.20.0
+                      prefix: 24
+                      count: 5
+                    - address: 30.30.30.0
+                      prefix: 24
+                      count: 5
+  - name: otgEth3
+    ethernets:
+      - name: otgEth3.eth
+        port_name: eth3
+        mac: "00:00:03:03:03:03"
+        ipv4_addresses:
+          - name: otgEth3.ipv4
+            address: "30.30.30.1"
+            gateway: "30.30.30.2"
+    bgp:
+      router_id: "30.30.30.1"
+      ipv4_interfaces:
+        - ipv4_name: "otgEth3.ipv4"
+          peers:
+            - name: otgEth3.bgp4.peer
+              peer_address: "30.30.30.2"
+              as_number: 1
+              as_type: ebgp
+              v4_routes:
+                - name: otgEth3.bgp4.peer.rr4
+                  next_hop_ipv4_address: "30.30.30.1"
+                  next_hop_address_type: ipv4
+                  next_hop_mode: manual
+                  addresses:
+                    - address: 10.10.10.0
+                      prefix: 24
+                      count: 5
+                    - address: 20.20.20.0
+                      prefix: 24
+                      count: 5
+  - name: otgEth2
+    ethernets:
+      - name: otgEth2.eth
+        port_name: eth2
+        mac: "00:00:02:02:02:02"
+        ipv4_addresses:
+          - name: otgEth2.ipv4
+            address: "20.20.20.1"
+            gateway: "20.20.20.2"
+    bgp:
+      router_id: "20.20.20.1"
+      ipv4_interfaces:
+        - ipv4_name: "otgEth2.ipv4"
+          peers:
+            - name: otgEth2.bgp4.peer
+              peer_address: "20.20.20.2"
+              as_number: 1
+              as_type: ebgp
+              v4_routes:
+                - name: otgEth2.bgp4.peer.rr4
+                  next_hop_ipv4_address: "20.20.20.1"
+                  next_hop_address_type: ipv4
+                  next_hop_mode: manual
+                  addresses:
+                    - address: 10.10.10.0
+                      prefix: 24
+                      count: 5
+                    - address: 30.30.30.0
+                      prefix: 24
+                      count: 5
 flows:
   - name: eth1>eth2
     duration:
@@ -20,15 +111,6 @@ flows:
       port:
         tx_name: eth1
         rx_name: eth2
-    packet:
-      - choice: ipv4
-        ipv4:
-          dst:
-            choice: value
-            value: 20.20.20.2
-          src:
-            choice: value
-            value: 10.10.10.2
   - name: eth1>eth3
     duration:
       choice: fixed_packets
@@ -50,15 +132,6 @@ flows:
       port:
         tx_name: eth1
         rx_name: eth3
-    packet:
-      - choice: ipv4
-        ipv4:
-          dst:
-            choice: value
-            value: 30.30.30.2
-          src:
-            choice: value
-            value: 10.10.10.2
   - name: eth2>eth1
     duration:
       choice: fixed_packets
@@ -80,15 +153,6 @@ flows:
       port:
         tx_name: eth2
         rx_name: eth1
-    packet:
-      - choice: ipv4
-        ipv4:
-          dst:
-            choice: value
-            value: 10.10.10.2
-          src:
-            choice: value
-            value: 20.20.20.2
   - name: eth2>eth3
     duration:
       choice: fixed_packets
@@ -110,15 +174,6 @@ flows:
       port:
         tx_name: eth2
         rx_name: eth3
-    packet:
-      - choice: ipv4
-        ipv4:
-          dst:
-            choice: value
-            value: 30.30.30.2
-          src:
-            choice: value
-            value: 20.20.20.2
   - name: eth3>eth1
     duration:
       choice: fixed_packets
@@ -140,15 +195,6 @@ flows:
       port:
         tx_name: eth3
         rx_name: eth1
-    packet:
-      - choice: ipv4
-        ipv4:
-          dst:
-            choice: value
-            value: 10.10.10.2
-          src:
-            choice: value
-            value: 30.30.30.2
   - name: eth3>eth2
     duration:
       choice: fixed_packets
@@ -170,15 +216,6 @@ flows:
       port:
         tx_name: eth3
         rx_name: eth2
-    packet:
-      - choice: ipv4
-        ipv4:
-          dst:
-            choice: value
-            value: 20.20.20.2
-          src:
-            choice: value
-            value: 30.30.30.2
 ports:
   - location: eth1
     name: eth1
