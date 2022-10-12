@@ -343,12 +343,13 @@ kne topology push $tmp_dir/topologies/3-node-ceos-with-traffic.pb.txt r2 $tmp_di
 kne topology push $tmp_dir/topologies/3-node-ceos-with-traffic.pb.txt r3 $tmp_dir/topologies/ceos/r3-config-fixed
 ```
 
-Then wait for a few minutes as BGP requires some time to configure, clean-up the
-previous jobs and rerun the test, which should generate valid results where the
-number of transmitted equals the number of received frames:
+Then wait for a few minutes as BGP requires some time to configure itself,
+clean-up the previous jobs and rerun the test. This time valid results should be
+shown where the number of transmitted frames is equal to the number of received
+frames:
 
 ```bash
-sleep 1m
+sleep 2m
 oc delete jobs --all -n $namespace
 oc create -f flows/job-flow-r1-r2-r3.yaml -n $namespace
 oc get job -l flow=r1-r2-r3 -o name | xargs oc logs -f
