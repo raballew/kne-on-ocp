@@ -186,7 +186,7 @@ service via its DNS A record (`<svc>.<namespace>.svc.cluster.local`).:
 oc get services -n $namespace
 service-r1                     LoadBalancer   172.30.203.182   <REDACTED>    443:31420/TCP,22:32358/TCP,6030:31958/TCP   29s
 service-r2                     LoadBalancer   172.30.23.251    <REDACTED>    22:32103/TCP,6030:32362/TCP,443:32467/TCP   28s
-service-r3                     LoadBalancer   172.30.61.134    <REDACTED>     443:31661/TCP,22:32477/TCP,6030:32122/TCP   28s
+service-r3                     LoadBalancer   172.30.61.134    <REDACTED>    443:31661/TCP,22:32477/TCP,6030:32122/TCP   28s
 ```
 
 Delete the topology:
@@ -275,7 +275,7 @@ frames received is equal to the number of frames sent. This indicates that this
 particular connection works fine and the traffic generator is operational.
 
 ```bash
-oc get job -l flow=otg-otg -o name | xargs oc logs -f
+oc get job -l flow=otg-otg -o name -n $namespace | xargs oc logs -n $namespace -f
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
 100   805  100   805    0     0   3120      0 --:--:-- --:--:-- --:--:--  3120
@@ -311,7 +311,7 @@ When inspecting the logs confirms our assumption because no frames are seen on
 receiving ends.
 
 ```bash
-oc get job -l flow=r1-r2-r3 -o name | xargs oc logs -f
+oc get job -l flow=r1-r2-r3 -o name -n $namespace | xargs oc logs -n $namespace -f
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
 100  2344  100  2344    0     0  66971      0 --:--:-- --:--:-- --:--:-- 68941
