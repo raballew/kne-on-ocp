@@ -1,7 +1,7 @@
 # Kubernetes Network Emulation on OpenShift
 
 Network emulation is the process of imitating certain aspects of the behavior of
-network equipment without actually using the target real-world networking
+network equipment without actually using any target real-world networking
 hardware. While there are many different use cases for network emulation one of
 the more interesting ones is virtual testing. Virtual testing is the simulation
 of a physical test environment. In this context it means removing the bottleneck
@@ -10,16 +10,16 @@ virtual instances of a production environment to pre-validate hardware tests.
 This frees up valuable and often limited hardware resources as certain testing
 scopes and most parts of the development process can be offloaded to virtual
 instances. Additionally, virtual instances often provide an easier to use
-environment that can be changed rapidly to represent any number of production
-topologies without anyone needing to physically setup the network.
+environment that can be changed rapidly to represent any production topology
+without anyone needing to physically setup the network.
 
 [Kubernetes Network Emulation (KNE)][kne] lets you run virtual network
-topologies in Kubernetes. It does so by running various device OSes in
-containers. For anyone interested in a more in-depth view into the inner
+topologies in Kubernetes. It does so by running various device operating systems
+in containers. For anyone interested in a more in-depth view into the inner
 workings of KNE I recommend using the projects source code as reference since
 the official documentation is a bit lacking.
 
-This documents will guide you through setting up KNE on [OpenShift
+This document will guide you through setting up KNE on [OpenShift
 (OCP)][openshift-docs] (or on [OKD][okd-docs] respectively) in the first step.
 Then you will use the KNE cluster to create and interact with your own topology
 based on Arista cEOS. In the last step you will set up a minimal workflow using
@@ -28,31 +28,32 @@ give you a good understanding of what virtual testing is all about and allow you
 to adopt this concept to more complex workflow leveraging tools such as
 [Tekton][tekton] or GitHub actions.
 
-If you struggling to setup an OKD cluster, you might want to follow [this
+If you are struggling to setup an OKD cluster, you might want to follow [this
 guide][okd-the-hard-way] to learn it the hard way.
 
-> With minor changes all steps mentioned in this guide are also be usable on
+> With a few minor changes all steps mentioned in this guide are also usable on
 > other Kubernetes distributions.
 
 ## Prerequisites
 
-The following system specifications are recommended for the cluster if you plan
-to run some workload beyond the scope of this guide:
+The following system specifications are required for the cluster if you plan to
+follow the guide and run some additional workload:
 
 * x86_64 cluster system architecture
 * Dynamic storage provisioning configured
 * At least 3 worker nodes
 * At least 8 CPU cores per worker node
-* At least 32 GB of RAM per worker node
+* At least 16 GB of RAM per worker node
 * At least 1 GBit/s network interfaces on all nodes
 * Cluster administrator permissions
 * Internet access
 
-> If you run your nodes on a hypervisor, make sure to pass-trough the hosts CPU
-> information as features such as SSSE3 are required to run traffic generation.
+> If the cluster worker nodes are hosted on a hypervisor, make sure to
+> pass-trough the CPU information as features such as SSSE3 are required to run
+> traffic generation successfully.
 
-You also will be able to use a much smaller setup but it would significantly
-impact performance and should only be used for evaluation.
+You also will be able to use a smaller setup but it could significantly impact
+performance.
 
 First, clone the source code required for this guide:
 
@@ -91,7 +92,7 @@ oc delete namespace meshnet-test
 
 > If you have already set up a load balancer so that Services of type `Load
 > Balancer` with external IP addresses can be used or if no cluster external
-> access to the virtual environment is required this skip can be skipped.
+> access to the virtual environment is required, this step can be skipped.
 
 Follow the instructions in the [official MetalLB documentation][metallb-docs]
 and its [notes for OCP and OKD][metallb-notes].
@@ -102,9 +103,9 @@ Arista requires its users to register with
 [arista.com][arista-software-download] before downloading any images.
 
 > Make sure to register as with the user role Partner or Customer (do not use
-Guest role) because otherwise you might not be able to download the required
-artifacts. If you are already registered you can change the role in your profile
-settings.
+> Guest role) because otherwise you might not be able to download the required
+> artifacts. If you are already registered you can change the role in your
+> profile settings.
 
 Once you created an account and logged in, go to the software downloads section
 and download a 64-bit release of cEOS-lab.
@@ -113,8 +114,8 @@ and download a 64-bit release of cEOS-lab.
 > `cEOS-lab/EOS-4.28.3M/cEOS64-lab-4.28.3M.tar.xz`. When you download this file
 > the `.xz` suffix will be missing.
 
-Then expose the internal registry and push the container image into it. Finally,
-set the internal registry back to private.
+Expose the internal registry and push the container image into it. Finally, set
+the internal registry back to private.
 
 ```bash
 oc patch configs.imageregistry.operator.openshift.io/cluster --patch '{"spec":{"defaultRoute":true}}' --type=merge
@@ -142,9 +143,9 @@ Deploy the Arista controller:
 oc apply -f https://raw.githubusercontent.com/aristanetworks/arista-ceoslab-operator/v1.0.2/config/kustomized/manifest.yaml
 ```
 
-Make sure the correct `image` is set for `ARISTA_CEOS` nodes in
-[3-node-ceos.pb.txt](/topologies/3-node-ceos.pb.txt) if you use a different
-version of cEOS.
+> Make sure the correct `image` is set for `ARISTA_CEOS` nodes in
+> [3-node-ceos.pb.txt](/topologies/3-node-ceos.pb.txt) if you use a different
+> version of cEOS.
 
 Deploy the topology into a new namespace:
 
@@ -156,6 +157,11 @@ cp -r topologies/ $tmp_dir
 echo "name: \"$namespace\"" >> $tmp_dir/topologies/3-node-ceos.pb.txt
 kne create $tmp_dir/topologies/3-node-ceos.pb.txt --kubecfg $KUBECONFIG
 ```
+
+Where:
+
+* `$KUBECONFIG` - List of paths to configuration files used to configure access
+  to a cluster
 
 > Do not interrupt the last command. It can take minutes until it finished. Just
 > be patient and wait.
@@ -170,11 +176,11 @@ oc exec -it -n $namespace r3 -- Cli -c "show bgp statistics"
 
 > If you check the output you will realize that BGP does not seem to work
 > properly, as on each virtual instance shows that `2 neighbors are in Connect
-> state`. This was done on purpose to and will be fixed later on.
+> state`. This was done on purpose and will be fixed in one of the next steps.
 
-You can also access each node by using their external or cluster IP address.
-Additionally you could use the Kubernetes DNS service to access each service via
-its DNS A record (`<svc>.<namespace>.svc.cluster.local`).:
+You can also access each virtual instance by using their external or cluster IP
+address. Additionally you could use the Kubernetes DNS service to access each
+service via its DNS A record (`<svc>.<namespace>.svc.cluster.local`).:
 
 ```bash
 oc get services -n $namespace
@@ -188,11 +194,6 @@ Delete the topology:
 ```bash
 oc delete namespace $namespace
 ```
-
-Where:
-
-* `$KUBECONFIG` - List of paths to configuration files used to configure access
-  to a cluster
 
 ## Traffic generation
 
@@ -213,17 +214,20 @@ oc set resources deployment ixiatg-op-controller-manager -n ixiatg-op-system --l
 > needs to match the release value at `.spec.data.versions` in
 > [config.yaml](/manifests/ixiatg/config.yaml). If you want to use a different
 > version, make sure to adjust both files accordingly before applying them to
-> the cluster. The latest upstream version of this configuration are published
-> via [ixia-c-operator
-> releases](https://github.com/open-traffic-generator/ixia-c/releases/).
+> the cluster. The latest upstream version of this configuration is published on
+> the [ixia-c-operator
+> releases](https://github.com/open-traffic-generator/ixia-c/releases/) page.
 
-Configure the usage of public available container images:
+Configure the usage of publicly available container images:
 
 ```bash
 oc apply -f manifests/ixiatg/config.yaml
 ```
 
-Deploy the same topology enhanced with traffic generation services into a new
+[3-node-ceos-with-traffic.pb.txt](/topologies/3-node-ceos-with-traffic.pb.txt)
+uses the same misconfigured topology as
+[3-node-ceos.pb.txt](/topologies/3-node-ceos.pb.txt) but enhanced it with
+services that allow traffic generation. Deploy this topology into a new
 namespace:
 
 ```bash
@@ -238,37 +242,37 @@ echo "name: \"$namespace\"" >> $tmp_dir/topologies/3-node-ceos-with-traffic.pb.t
 kne create $tmp_dir/topologies/3-node-ceos-with-traffic.pb.txt --kubecfg $KUBECONFIG
 ```
 
-> Do not interrupt the last command. It can take minutes until it finished. Just
-> wait.
-
 Where:
 
 * `$KUBECONFIG` - List of paths to configuration files used to configure access
   to a cluster
 
-As of now a topology consisting of several switches and a reference
-implementation of the [Open Traffic Generator
+> Do not interrupt the last command. It can take minutes until it finished. Just
+> wait.
+
+Now a topology consisting of several switches and a reference implementation of
+the [Open Traffic Generator
 API](https://github.com/open-traffic-generator/models) has been deployed with
 the [IXIA-C traffic
 generator](https://github.com/open-traffic-generator/ixia-c). In order to
-generate traffic test scripts are written in
+generate traffic usually test scripts are written in
 [snappi](https://github.com/open-traffic-generator/snappi) and executed against
-the IXIA-C service (`*-otg-controller` services as shown above). Another way of
-running tests is by using the [Open Traffic Generator CLI
-Tool](https://github.com/open-traffic-generator/otgen), which we for simplicity
-will use in the next step.
+the IXIA-C service (`*-otg-controller` services as shown above). Another, more
+simplistic way of running tests is by using the [Open Traffic Generator CLI
+Tool](https://github.com/open-traffic-generator/otgen) which will be used for
+this guide.
 
-Deploy a job that triggers a workflow where traffic flows trough a direct
-connection between two ports (`eth4` and `eth5`) on the traffic generator
-instance (`otg`):
+In order to validate the functionality of the traffic generator deploy a job
+that triggers a workflow where traffic flows trough a direct link between two
+ports (`eth4` and `eth5`) on the traffic generator:
 
 ```bash
 oc create -f flows/job-flow-otg-otg.yaml -n $namespace
 ```
 
 By inspecting the logs, for each flow `eth4>eth5` and `eth5>eth4` the number of
-frames received equals the number of frames send. This indicates the this
-particular connection works fine.
+frames received is equal to the number of frames sent. This indicates that this
+particular connection works fine and the traffic generator is operational.
 
 ```bash
 oc get job -l flow=otg-otg -o name | xargs oc logs -f
@@ -291,19 +295,20 @@ time="2022-10-11T19:57:53Z" level=info msg="Total packets to transmit: 1000, ETA
 time="2022-10-11T19:57:56Z" level=info msg=stopped.
 ```
 
-Lets try something more complex and see if the network configuration actually
-works. This could be done by running a flow that tries to send traffic from
-ports `eth1` (connected to virtual instance `r1`), `eth2` (connected to virtual
-instance `r2`) and `eth3` (connected to virtual instance `r3`) to each other. In
-theory, if everything is configured properly, this should create a similar
-output as in the previous flow.
+Lets try something more complex and see if our initial assumption, that the
+topology of the virtual switch instances is broken. This can be done by running
+a flow that tries to send traffic from ports `eth1` (connected to virtual
+instance `r1`), `eth2` (connected to virtual instance `r2`) and `eth3`
+(connected to virtual instance `r3`) to all other ports. In theory, if
+everything is configured properly, this should create a similar output as in the
+previous flow but we already know that something is broken.
 
 ```bash
 oc create -f flows/job-flow-r1-r2-r3.yaml -n $namespace
 ```
 
-When inspecting the logs it becomes clear that something is broken because no
-frames are being received.
+When inspecting the logs confirms our assumption because no frames are seen on
+receiving ends.
 
 ```bash
 oc get job -l flow=r1-r2-r3 -o name | xargs oc logs -f
@@ -380,15 +385,21 @@ oc delete namespace $namespace
 
 KNE itself is still under development and lacks some convenience feature such as
 deploying a topology into a specific namespace or taking into account the
-current context set in the kubeconfig files.
+current context set in the kubeconfig files. Additionally KNE deploys pods only,
+which means the entire process described is vulnerable against disruptions such
+as node failures even though there might be good reasons to not restart by using
+more sophisticated approaches such as deployments since a failed instance could
+indicate that a critical error caused the virtual instance to crash and in a
+testing environment recovering automatically might be a bad idea.
 
 IXIA traffic generation as described in the [KNE examples][kne-examples] does
 not seem to work on OpenShift out of the box as IXIA requires additional
 privileges and seem to have problems handling arbitrary UID which are enforced
 by OpenShift. Due to this, containers images have been rebuilt and a bunch of
 patches have been applied to overcome these shortcomings. Keep in mind, that
-before considering going into production with this a bunch of changes need to
-happen upstream first.
+this was only done to proof the point that it is possible to run KNE on OCP and
+before considering going into production reaching out to the vendors in order to
+build a supported solution should be the first thing to do.
 
 [kne]: https://github.com/openconfig/kne
 [kne-docs]: https://github.com/openconfig/kne/blob/main/docs/setup.md
