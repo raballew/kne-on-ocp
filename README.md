@@ -143,11 +143,11 @@ Deploy the Arista controller:
 oc apply -f https://raw.githubusercontent.com/aristanetworks/arista-ceoslab-operator/v1.0.2/config/kustomized/manifest.yaml
 ```
 
+Deploy the topology into a new namespace:
+
 > Make sure the correct `image` is set for `ARISTA_CEOS` nodes in
 > [3-node-ceos.pb.txt](/topologies/3-node-ceos.pb.txt) if you use a different
 > version of cEOS.
-
-Deploy the topology into a new namespace:
 
 ```bash
 namespace=3-node-ceos
@@ -230,6 +230,10 @@ uses the same misconfigured topology as
 services that allow traffic generation.
 
 Deploy this topology into a new namespace:
+
+> Make sure the correct `image` is set for `ARISTA_CEOS` nodes in
+> [3-node-ceos-with-traffic.pb.txt](/topologies/3-node-ceos-with-traffic.pb.txt) if you use a different
+> version of cEOS.
 
 ```bash
 namespace=3-node-ceos-with-traffic
