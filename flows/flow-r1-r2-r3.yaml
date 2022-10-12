@@ -20,6 +20,15 @@ flows:
       port:
         tx_name: eth1
         rx_name: eth2
+    packet:
+      - choice: ipv4
+        ipv4:
+          dst:
+            choice: value
+            value: 20.20.20.2
+          src:
+            choice: value
+            value: 10.10.10.2
   - name: eth1>eth3
     duration:
       choice: fixed_packets
@@ -41,6 +50,15 @@ flows:
       port:
         tx_name: eth1
         rx_name: eth3
+    packet:
+      - choice: ipv4
+        ipv4:
+          dst:
+            choice: value
+            value: 30.30.30.2
+          src:
+            choice: value
+            value: 10.10.10.2
   - name: eth2>eth1
     duration:
       choice: fixed_packets
@@ -62,6 +80,15 @@ flows:
       port:
         tx_name: eth2
         rx_name: eth1
+    packet:
+      - choice: ipv4
+        ipv4:
+          dst:
+            choice: value
+            value: 10.10.10.2
+          src:
+            choice: value
+            value: 20.20.20.2
   - name: eth2>eth3
     duration:
       choice: fixed_packets
@@ -83,6 +110,15 @@ flows:
       port:
         tx_name: eth2
         rx_name: eth3
+    packet:
+      - choice: ipv4
+        ipv4:
+          dst:
+            choice: value
+            value: 30.30.30.2
+          src:
+            choice: value
+            value: 20.20.20.2
   - name: eth3>eth1
     duration:
       choice: fixed_packets
@@ -104,6 +140,15 @@ flows:
       port:
         tx_name: eth3
         rx_name: eth1
+    packet:
+      - choice: ipv4
+        ipv4:
+          dst:
+            choice: value
+            value: 10.10.10.2
+          src:
+            choice: value
+            value: 30.30.30.2
   - name: eth3>eth2
     duration:
       choice: fixed_packets
@@ -125,6 +170,15 @@ flows:
       port:
         tx_name: eth3
         rx_name: eth2
+    packet:
+      - choice: ipv4
+        ipv4:
+          dst:
+            choice: value
+            value: 20.20.20.2
+          src:
+            choice: value
+            value: 30.30.30.2
 ports:
   - location: eth1
     name: eth1

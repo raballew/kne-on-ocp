@@ -232,8 +232,8 @@ services that allow traffic generation.
 Deploy this topology into a new namespace:
 
 > Make sure the correct `image` is set for `ARISTA_CEOS` nodes in
-> [3-node-ceos-with-traffic.pb.txt](/topologies/3-node-ceos-with-traffic.pb.txt) if you use a different
-> version of cEOS.
+> [3-node-ceos-with-traffic.pb.txt](/topologies/3-node-ceos-with-traffic.pb.txt)
+> if you use a different version of cEOS.
 
 ```bash
 namespace=3-node-ceos-with-traffic
@@ -340,12 +340,24 @@ time="2022-10-11T20:22:53Z" level=info msg="Total packets to transmit: 3000, ETA
 time="2022-10-11T20:22:59Z" level=info msg=stopped.
 ```
 
-Lets fix this by pushing a valid configuration to each virtual instance:
+Lets fix this by first cleaning up the broken topology:
 
 ```bash
-kne topology push $tmp_dir/topologies/3-node-ceos-with-traffic.pb.txt r1 $tmp_dir/topologies/ceos/r1-config-fixed --kubecfg $KUBECONFIG
-kne topology push $tmp_dir/topologies/3-node-ceos-with-traffic.pb.txt r2 $tmp_dir/topologies/ceos/r2-config-fixed --kubecfg $KUBECONFIG
-kne topology push $tmp_dir/topologies/3-node-ceos-with-traffic.pb.txt r3 $tmp_dir/topologies/ceos/r3-config-fixed --kubecfg $KUBECONFIG
+oc delete namespace $namespace
+```
+
+Then create a topology with a valid configuration:
+
+```bash
+namespace=3-node-ceos-with-traffic-fixed
+oc create namespace $namespace
+# Fixes https://github.com/open-traffic-generator/ixia-c-operator/issues/18
+# Fixes https://github.com/open-traffic-generator/ixia-c-operator/issues/19
+oc apply -f manifests/ixiatg/rbac.yaml -n $namespace
+tmp_dir=$(mktemp -d)
+cp -r topologies/ $tmp_dir
+echo "name: \"$namespace\"" >> $tmp_dir/topologies/3-node-ceos-with-traffic-fixed.pb.txt
+kne create $tmp_dir/topologies/3-node-ceos-with-traffic-fixed.pb.txt --kubecfg $KUBECONFIG
 ```
 
 Where:
@@ -353,19 +365,15 @@ Where:
 * `$KUBECONFIG` - List of paths to configuration files used to configure access
   to a cluster
 
-> Do not interrupt the `kne` commands. It can take minutes until they return.
-> Just be patient and wait.
+> Do not interrupt the `kne` command. It can take minutes until it returns. Just
+> be patient and wait.
 
-Then wait for a few minutes as BGP requires some time to configure itself,
-clean-up the previous jobs and rerun the test. This time valid results should be
-shown where the number of transmitted frames is equal to the number of received
-frames:
+This time valid results should be shown where the number of transmitted frames
+is equal to the number of received frames:
 
 ```bash
-sleep 2m
-oc delete jobs --all -n $namespace
 oc create -f flows/job-flow-r1-r2-r3.yaml -n $namespace
-oc get job -l flow=r1-r2-r3 -o name | xargs oc logs -f
+oc get job -l flow=r1-r2-r3 -o name -n $namespace | xargs oc logs -n $namespace -f
 
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed

@@ -79,9 +79,9 @@ interface Loopback0
 ip routing
 !
 router bgp 1
-   neighbor 1.2.0.1 remote-as 1
-   neighbor 1.2.0.10 remote-as 1
-   neighbor 20.20.20.1 remote-as 3001
+   neighbor 111.2.0.1 remote-as 1
+   neighbor 111.2.0.10 remote-as 1
+   neighbor 201.20.20.1 remote-as 3001
    network 2.2.2.2/32
    network 20.20.20.0/24
 !
