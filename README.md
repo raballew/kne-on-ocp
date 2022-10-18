@@ -16,31 +16,38 @@ without anyone needing to physically setup the network.
 [Kubernetes Network Emulation (KNE)][kne] lets you run virtual network
 topologies in Kubernetes. It does so by running various device operating systems
 in containers. For anyone interested in a more in-depth view into the inner
-workings of KNE I recommend using the projects source code as reference since
-the official documentation is a bit lacking.
+workings of KNE the projects source code should act as the reference since the
+documentation is a bit lacking.
 
 This document will guide you through setting up KNE on [OpenShift
 (OCP)][openshift-docs] (or on [OKD][okd-docs] respectively) in the first step.
-Then you will use the KNE cluster to create and interact with your own topology
-based on Arista cEOS. In the last step you will set up a minimal workflow using
-a simple job and virtual instances to pre-validate hardware tests. This should
+Then you will use the KNE cluster to create and interact with a topology based
+on [Arista cEOS][arista-ceos]. In the last step you will set up a minimal
+workflow using the same topology attached to virtual instances of the [IXIA-C
+Open Traffic Generator][ixia-c-otg] to pre-validate hardware tests. This should
 give you a good understanding of what virtual testing is all about and allow you
-to adopt this concept to more complex workflow leveraging tools such as
-[Tekton][tekton] or GitHub actions.
+to adopt this concept to more complex CI workflows leveraging your choice of
+tools.
 
 If you are struggling to setup an OKD cluster, you might want to follow [this
 guide][okd-the-hard-way] to learn it the hard way.
 
-> With a few minor changes all steps mentioned in this guide are also usable on
-> other Kubernetes distributions.
+> With a few changes all steps mentioned in this guide are also usable on other
+> Kubernetes distributions.
 
 ## Prerequisites
 
-The following system specifications are required for the cluster if you plan to
+This guide assumes that you are familiar with a few technologies on a
+fundamental level:
+
+* OpenShift
+* Operators
+* Networking
+
+The following system specifications are required for the cluster in order to
 follow the guide and run some additional workload:
 
 * x86_64 cluster system architecture
-* Dynamic storage provisioning configured
 * At least 3 worker nodes
 * At least 8 CPU cores per worker node
 * At least 16 GB of RAM per worker node
@@ -48,17 +55,16 @@ follow the guide and run some additional workload:
 * Cluster administrator permissions
 * Internet access
 
-> If the cluster worker nodes are hosted on a hypervisor, make sure to
-> pass-trough the CPU information as features such as SSSE3 are required to run
-> traffic generation successfully.
+If the cluster worker nodes are hosted on a hypervisor, make sure to pass-trough
+the CPU information as features such as SSSE3 are required to run traffic
+generation successfully. A smaller cluster might be feasible as well but it
+could significantly impact performance. For the development of this guide an
+OpenShift 4.11 cluster has been used.
 
-You also will be able to use a smaller setup but it could significantly impact
-performance.
-
-First, clone the source code required for this guide:
+To get started clone the source code required for this guide:
 
 ```bash
-git clone git@github.com:raballew/kne-on-ocp.git
+git clone https://github.com/raballew/kne-on-ocp.git
 ```
 
 ## Deploy meshnet CNI
@@ -88,22 +94,25 @@ oc exec r1 -n meshnet-test -- ping -c 1 12.12.12.2
 oc delete namespace meshnet-test
 ```
 
+`meshnet` is successfully configured, if you have been able to ping `12.12.12.2`
+from pod `r1`.
+
 ## Deploy MetalLB
 
-> If you have already set up a load balancer so that Services of type `Load
-> Balancer` with external IP addresses can be used or if no cluster external
-> access to the virtual environment is required, this step can be skipped.
+> This step is optional if you have already set up a load balancer so that
+> Services of type `Load Balancer` with external IP addresses can be used or if
+> no cluster external access to the virtual environment is required.
 
 Follow the instructions in the [official MetalLB documentation][metallb-docs]
 and its [notes for OCP and OKD][metallb-notes].
 
 ## Getting cEOS image
 
-Arista requires its users to register with
-[arista.com][arista-software-download] before downloading any images.
+Arista requires its users to register at [arista.com][arista-software-download]
+before downloading any container images.
 
-> Make sure to register as with the user role Partner or Customer (do not use
-> Guest role) because otherwise you might not be able to download the required
+> Make sure to register with the user role Partner or Customer (do not use Guest
+> role) because otherwise you might not be able to download the required
 > artifacts. If you are already registered you can change the role in your
 > profile settings.
 
@@ -135,7 +144,7 @@ setup KNE.
 ## Create topology
 
 Some vendors provide a controller that handles the pod lifecycle for their
-nodes. For cEOS Arista provides a controller.
+nodes. Arista provides a controller for cEOS nodes.
 
 Deploy the Arista controller:
 
@@ -143,7 +152,7 @@ Deploy the Arista controller:
 oc apply -f https://raw.githubusercontent.com/aristanetworks/arista-ceoslab-operator/v1.0.2/config/kustomized/manifest.yaml
 ```
 
-Deploy the topology into a new namespace:
+Deploy a basic topology with three cEOS virtual instances into a new namespace:
 
 > Make sure the correct `image` is set for `ARISTA_CEOS` nodes in
 > [3-node-ceos.pb.txt](/topologies/3-node-ceos.pb.txt) if you use a different
@@ -179,7 +188,7 @@ oc exec -it -n $namespace r3 -- Cli -c "show bgp statistics"
 > state`. This was done on purpose and will be fixed in one of the next steps.
 
 You can also access each virtual instance by using their external or cluster IP
-address. Additionally you could use the Kubernetes DNS service to access each
+address. Additionally you could use the Kubernetes DNS service to address each
 service via its DNS A record (`<svc>.<namespace>.svc.cluster.local`).
 
 ```bash
@@ -199,10 +208,22 @@ oc delete namespace $namespace
 
 ## Traffic generation
 
-IXIA offers an operator that through a CRD allows the deployment of a modern,
-powerful and API-driven traffic generator.
+The [OTG project][otg] offers an operator that through a CRD allows the
+deployment of a modern, powerful and API-driven open source traffic generator
+with limited functionality. A commercially supported version is available
+through the [Keysight Elastic Network
+Generator][keysight-elastic-network-generator] which offers advanced
+functionality such as the emulation of key data center OSI layer 2 and OSI layer
+3 control plane protocols. While simple traffic generation works with the open
+source version as well, the topologies deployed in this guide rely on BGP, a
+control plane protocol. Hence, in order to run a meaningful test the traffic
+generator instances need to be configured using the protocol engine - a
+functionality that is only available in the commercially supported version.
 
-Install the IXIA traffic generator:
+> Reach out to the [Keysight Support][keysight-support] in order to gain access
+> to the container images for the commercially supported version.
+
+Install the IXIA-C traffic generator:
 
 ```bash
 oc apply -f https://github.com/open-traffic-generator/ixia-c-operator/releases/download/v0.2.2/ixiatg-operator.yaml
@@ -210,26 +231,41 @@ oc apply -f https://github.com/open-traffic-generator/ixia-c-operator/releases/d
 oc set resources deployment ixiatg-op-controller-manager -n ixiatg-op-system --limits memory=200Mi
 ```
 
-> For the deployment of IXIA with custom images the version for nodes of type
-> `IXIA_TG` specified in
-> [3-node-ceos-with-traffic.pb.txt](/topologies/3-node-ceos-with-traffic.pb.txt)
-> needs to match the release value at `.spec.data.versions` in
-> [config.yaml](/manifests/ixiatg/config.yaml). If you want to use a different
-> version, make sure to adjust both files accordingly before applying them to
-> the cluster. The latest upstream version of this configuration is published on
-> the [ixia-c-operator
-> releases](https://github.com/open-traffic-generator/ixia-c/releases/) page.
+You need to decide if you want to use publicly available container images for
+the open-source version or container images hosted on a private registry for the
+commercially supported version:
 
-Configure the usage of publicly available container images:
+If you want to use the open-source version apply the following configuration:
 
 ```bash
 oc apply -f manifests/ixiatg/config.yaml
 ```
 
+If you want to use the commercially supported version apply the following
+configuration and [update the global cluster pull secret][global-pull-secret] by
+appending a new pull secret for Keysights private container registry:
+
+```bash
+curl -L https://github.com/open-traffic-generator/ixia-c/releases/download/v0.0.1-3423/ixia-configmap.yaml > manifests/ixiatg/config.yaml
+sed -i -- 's/"release": "0.0.1-3423"/"release": "local-0.0.1-3423"/g' manifests/ixiatg/config.yaml
+oc apply -f manifests/ixiatg/config.yaml
+```
+
+> For the deployment of the IXIA-C traffic generator with custom images the
+> version for nodes of type `IXIA_TG` specified in
+> [3-node-ceos-with-traffic.pb.txt](/topologies/3-node-ceos-with-traffic.pb.txt)
+> needs to match the release value at `.spec.data.versions` in
+> [config-public.yaml](/manifests/ixiatg/config-public.yaml) or
+> [config-private.yaml](/manifests/ixiatg/config-private.yaml). If you want to
+> use a different version, make sure to adjust all files accordingly before
+> applying them to the cluster. The latest upstream version of this
+> configuration is published on the [ixia-c-operator
+> releases](https://github.com/open-traffic-generator/ixia-c/releases/) page.
+
 [3-node-ceos-with-traffic.pb.txt](/topologies/3-node-ceos-with-traffic.pb.txt)
-uses the same misconfigured topology as
-[3-node-ceos.pb.txt](/topologies/3-node-ceos.pb.txt) but enhanced it with
-services that allow traffic generation.
+uses the same topology with a broken BGP configuration as
+[3-node-ceos.pb.txt](/topologies/3-node-ceos.pb.txt) but added services for
+traffic generation.
 
 Deploy this topology into a new namespace:
 
@@ -257,29 +293,49 @@ Where:
 > Do not interrupt the `kne` command. It can take minutes until it returns. Just
 > be patient and wait.
 
-Now a topology consisting of several switches and a reference implementation of
-the [Open Traffic Generator
+Once the command returns successfully, a new topology consisting of several
+switches and a reference implementation of the [Open Traffic Generator
 API](https://github.com/open-traffic-generator/models) has been deployed with
 the [IXIA-C traffic
-generator](https://github.com/open-traffic-generator/ixia-c). In order to
-generate traffic usually test scripts are written in
-[snappi](https://github.com/open-traffic-generator/snappi) and executed against
-the IXIA-C service (`*-otg-controller` services as shown above). Another, more
-simplistic way of running tests is by using the [Open Traffic Generator CLI
-Tool](https://github.com/open-traffic-generator/otgen) which will be used for
+generator](https://github.com/open-traffic-generator/ixia-c).
+
+```bash
+oc get services -n $namespace
+
+NAME                           TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)                                     AGE
+service-gnmi-otg-controller    LoadBalancer   172.30.36.53     <REDACTED>    50051:31039/TCP                             43s
+service-grpc-otg-controller    LoadBalancer   172.30.148.74    <REDACTED>    40051:31636/TCP                             43s
+service-https-otg-controller   LoadBalancer   172.30.226.247   <REDACTED>    443:30120/TCP                               43s
+service-otg-port-eth1          LoadBalancer   172.30.17.198    <REDACTED>    5555:30754/TCP,50071:30271/TCP              43s
+service-otg-port-eth2          LoadBalancer   172.30.94.133    <REDACTED>    5555:31173/TCP,50071:31540/TCP              43s
+service-otg-port-eth3          LoadBalancer   172.30.94.236    <REDACTED>    5555:30410/TCP,50071:31177/TCP              43s
+service-otg-port-eth4          LoadBalancer   172.30.88.101    <REDACTED>    5555:32371/TCP,50071:31531/TCP              43s
+service-otg-port-eth5          LoadBalancer   172.30.209.82    <REDACTED>    5555:31945/TCP,50071:31893/TCP              43s
+service-r1                     LoadBalancer   172.30.99.70     <REDACTED>    443:30896/TCP,22:30113/TCP,6030:30300/TCP   43s
+service-r2                     LoadBalancer   172.30.60.68     <REDACTED>    443:31079/TCP,22:30859/TCP,6030:30132/TCP   43s
+service-r3                     LoadBalancer   172.30.236.73    <REDACTED>    6030:32008/TCP,443:30317/TCP,22:32145/TCP   43s
+```
+
+In order to generate traffic scripts using
+[snappi](https://github.com/open-traffic-generator/snappi) can be executed
+against the newly deployed services (`*-otg-controller` and `*-otg-port-eth*`
+services as shown above). Another, more simplistic way of running tests is by
+using the [Open Traffic Generator CLI
+Tool](https://github.com/open-traffic-generator/otgen) which will be used in
 this guide.
 
 In order to validate the functionality of the traffic generator deploy a job
-that triggers a workflow where traffic flows trough a direct link between two
-ports (`eth4` and `eth5`) on the traffic generator:
+that triggers flows trough a direct link between two ports (`eth4` and `eth5`)
+on the traffic generator:
 
 ```bash
 oc create -f flows/job-flow-otg-otg.yaml -n $namespace
 ```
 
-By inspecting the logs, for each flow `eth4>eth5` and `eth5>eth4` the number of
+By inspecting the logs, for each flow `eth4>eth5` and `eth5>eth4`, the number of
 frames received is equal to the number of frames sent. This indicates that this
-particular connection works fine and the traffic generator is operational.
+particular connection works fine for the test parameters and the traffic
+generator is operational.
 
 ```bash
 oc get job -l flow=otg-otg -o name -n $namespace | xargs oc logs -n $namespace -f
@@ -302,20 +358,27 @@ time="2022-10-11T19:57:53Z" level=info msg="Total packets to transmit: 1000, ETA
 time="2022-10-11T19:57:56Z" level=info msg=stopped.
 ```
 
+> The following steps require access to the commercially supported version of
+> IXIA-C traffic generator. Using the open-source version does not work as it
+> does not provide a protocol-engine container image. Reach out to the [Keysight
+> Support][keysight-support] in order to gain access to their private container
+> registries.
+
 Lets try something more complex and see if our initial assumption, that the
-topology of the virtual switch instances is broken. This can be done by running
-a flow that tries to send traffic from ports `eth1` (connected to virtual
-instance `r1`), `eth2` (connected to virtual instance `r2`) and `eth3`
-(connected to virtual instance `r3`) to all other ports. In theory, if
+topology of the virtual switch instances is broken, remains true. This can be
+done by running a flow that tries to send traffic from ports `eth1` (connected
+to virtual instance `r1`), `eth2` (connected to virtual instance `r2`) and
+`eth3` (connected to virtual instance `r3`) to all other ports. In theory, if
 everything is configured properly, this should create a similar output as in the
-previous flow but we already know that something is broken.
+previous flow but as a cautious reader you probably already know that something
+is broken.
 
 ```bash
 oc create -f flows/job-flow-r1-r2-r3.yaml -n $namespace
 ```
 
-When inspecting the logs confirms our assumption because no frames are seen on
-any receiving end.
+When inspecting the logs they confirm our assumption because no frames are seen
+on any receiving end.
 
 ```bash
 oc get job -l flow=r1-r2-r3 -o name -n $namespace | xargs oc logs -n $namespace -f
@@ -342,13 +405,13 @@ time="2022-10-11T20:22:53Z" level=info msg="Total packets to transmit: 3000, ETA
 time="2022-10-11T20:22:59Z" level=info msg=stopped.
 ```
 
-Lets fix this by first cleaning up the broken topology:
+Lets fix this by first removing the broken topology:
 
 ```bash
 oc delete namespace $namespace
 ```
 
-Then create a topology with a valid configuration:
+Then create a topology with a valid BGP configuration:
 
 ```bash
 namespace=3-node-ceos-with-traffic-fixed
@@ -370,8 +433,8 @@ Where:
 > Do not interrupt the `kne` command. It can take minutes until it returns. Just
 > be patient and wait.
 
-This time valid results should be shown where the number of transmitted frames
-is equal to the number of received frames:
+This time valid test results should be shown where the number of transmitted
+frames is equal to the number of received frames:
 
 ```bash
 oc create -f flows/job-flow-r1-r2-r3.yaml -n $namespace
@@ -399,8 +462,7 @@ time="2022-10-11T20:46:01Z" level=info msg="Total packets to transmit: 3000, ETA
 time="2022-10-11T20:46:04Z" level=info msg=stopped.
 ```
 
-If you are finished with testing and do not need the topology anymore, delete
-it:
+If you are finished with testing delete the topology:
 
 ```bash
 oc delete namespace $namespace
@@ -417,7 +479,7 @@ more sophisticated approaches such as deployments since a failed instance could
 indicate that a critical error caused the virtual instance to crash and in a
 testing environment recovering automatically might be a bad idea.
 
-IXIA traffic generation as described in the [KNE examples][kne-examples] does
+IXIA-C traffic generation as described in the [KNE examples][kne-examples] does
 not seem to work on OpenShift out of the box as IXIA requires additional
 privileges and seem to have problems handling arbitrary UID which are enforced
 by OpenShift. Due to this, containers images have been rebuilt and a bunch of
@@ -434,7 +496,14 @@ build a supported solution should be the first thing to do.
 [metallb-docs]: https://metallb.universe.tf/installation/
 [metallb-notes]:
     https://metallb.universe.tf/installation/clouds/#metallb-on-openshift-ocp
-[tekton]: https://tekton.dev/docs/
+[keysight-elastic-network-generator]:
+    https://www.keysight.com/de/de/products/network-test/protocol-load-test/keysight-elastic-network-generator.html
+[keysight-support]: https://www.keysight.com/us/en/support.html
 [arista-software-download]: https://www.arista.com/en/support/software-download
+[arista-ceos]: https://www.arista.com/assets/data/pdf/cEOS_Solution_Brief.pdf
+[ixia-c-otg]: https://github.com/open-traffic-generator/ixia-c
+[otg]: https://github.com/open-traffic-generator
 [kne-examples]:
     https://github.com/openconfig/kne/blob/main/examples/3node-withtraffic.pb.txt
+[global-pull-secret]:
+    https://docs.openshift.com/container-platform/4.11/openshift_images/managing_images/using-image-pull-secrets.html#images-update-global-pull-secret_using-image-pull-secrets
