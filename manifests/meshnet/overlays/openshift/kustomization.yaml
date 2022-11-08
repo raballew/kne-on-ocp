@@ -11,7 +11,7 @@ patches:
           apiGroups:
             - security.openshift.io
           resourceNames:
-            - meshnet
+            - privileged
           resources:
             - securitycontextconstraints
           verbs:
@@ -36,6 +36,13 @@ patches:
     target:
       kind: DaemonSet
       name: meshnet
+  - patch: |-
+      - op: replace
+        path: /spec/template/spec/volumes/1/hostPath
+        value:
+          path: /etc/kubernetes/cni/net.d
+    target:
+      kind: DaemonSet
+      name: meshnet
 resources:
   - ../../base/
-  - scc.yaml

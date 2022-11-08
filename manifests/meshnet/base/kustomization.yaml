@@ -1,11 +1,16 @@
+---
 apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-namespace: meshnet
 commonLabels:
   app: meshnet
+images:
+  - digest: sha256:238fd66441c7665add997159ee73e258eb70fcc16937cb0fa4a45672a0d4ba97
+    name: meshnet
+    newName: registry.hub.docker.com/networkop/meshnet
+kind: Kustomization
+namespace: meshnet
 resources:
-- namespace.yaml
-- serviceaccount.yaml
-- crd.yaml
-- rbac.yaml
-- daemonset.yaml
+  - namespace.yaml
+  - serviceaccount.yaml
+  - crd.yaml
+  - rbac.yaml
+  - daemonset.yaml

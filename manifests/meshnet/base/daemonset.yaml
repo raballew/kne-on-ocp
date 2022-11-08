@@ -1,9 +1,10 @@
+---
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: meshnet
   labels:
     k8s-app: meshnet
+  name: meshnet
 spec:
   selector:
     matchLabels:
@@ -13,28 +14,8 @@ spec:
       labels:
         name: meshnet
     spec:
-      hostNetwork: true
-      hostPID: true
-      hostIPC: true
-      serviceAccountName: meshnet
-      nodeSelector:
-        beta.kubernetes.io/arch: amd64
-      tolerations:
-        - operator: Exists
-          effect: NoSchedule
       containers:
-        - name: meshnet
-          securityContext:
-            privileged: true
-          image: networkop/meshnet:latest
-          imagePullPolicy: IfNotPresent
-          resources:
-            limits:
-              memory: 200Mi
-            requests:
-              cpu: 100m
-              memory: 200Mi
-          env:
+        - env:
             - name: HOST_IP
               valueFrom:
                 fieldRef:
@@ -42,22 +23,42 @@ spec:
             - name: INTER_NODE_LINK_TYPE
               #value: GRPC
               value: VXLAN
+          image: meshnet
+          imagePullPolicy: IfNotPresent
+          name: meshnet
+          resources:
+            limits:
+              memory: 200Mi
+            requests:
+              cpu: 100m
+              memory: 200Mi
+          securityContext:
+            privileged: true
           volumeMounts:
-            - name: cni-cfg
-              mountPath: /etc/cni/net.d
-            - name: cni-bin
-              mountPath: /opt/cni/bin
-            - name: var-run-netns
-              mountPath: /var/run/netns
+            - mountPath: /etc/cni/net.d
+              name: cni-cfg
+            - mountPath: /opt/cni/bin
+              name: cni-bin
+            - mountPath: /var/run/netns
               mountPropagation: Bidirectional
+              name: var-run-netns
+      hostIPC: true
+      hostNetwork: true
+      hostPID: true
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      serviceAccountName: meshnet
       terminationGracePeriodSeconds: 30
+      tolerations:
+        - effect: NoSchedule
+          operator: Exists
       volumes:
-        - name: cni-bin
-          hostPath:
+        - hostPath:
             path: /opt/cni/bin
-        - name: cni-cfg
-          hostPath:
+          name: cni-bin
+        - hostPath:
             path: /etc/cni/net.d
-        - name: var-run-netns
-          hostPath:
+          name: cni-cfg
+        - hostPath:
             path: /var/run/netns
+          name: var-run-netns
