@@ -37,9 +37,9 @@ jobs:
           echo USER=${USER}
           echo REPOSITORY=${REPOSITORY}
 
-          docker tag ${IMAGE_ID} ${IMAGE_ID}:${{ github.sha }}
+          docker tag ${IMAGE_NAME}:latest ${IMAGE_ID}:${{ github.sha }}
           docker push ${IMAGE_ID}:${{ github.sha }}
-          docker tag ${IMAGE_ID} ${IMAGE_ID}:${VERSION}
+          docker tag ${IMAGE_NAME}:latest ${IMAGE_ID}:${VERSION}
           docker push ${IMAGE_ID}:${VERSION}
   build:
     runs-on: ubuntu-latest
