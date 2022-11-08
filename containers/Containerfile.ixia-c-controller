@@ -1,5 +1,0 @@
-FROM docker.io/ixiacom/ixia-c-controller:0.0.1-3423
-
-RUN chgrp -R 0 /home/keysight/ && \
-    chmod -R g=u /home/keysight/
-RUN chmod g=u /etc/passwd
