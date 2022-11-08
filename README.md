@@ -23,7 +23,7 @@ This document will guide you through setting up KNE on [OpenShift
 (OCP)][openshift-docs] (or on [OKD][okd-docs] respectively) in the first step.
 Then you will use the KNE cluster to create and interact with a topology based
 on [Arista cEOS][arista-ceos]. In the last step you will set up a minimal
-workflow using the same topology attached to virtual instances of the [IXIA-C
+workflow using the same topology attached to virtual instances of the [Ixia-C
 Open Traffic Generator][ixia-c-otg] to pre-validate hardware tests. This should
 give you a good understanding of what virtual testing is all about and allow you
 to adopt this concept to more complex CI workflows leveraging your choice of
@@ -100,7 +100,7 @@ from pod `r1`.
 ## Deploy MetalLB
 
 > This step is optional if you have already set up a load balancer so that
-> Services of type `Load Balancer` with external IP addresses can be used or if
+> Services of type `LoadBalancer` with external IP addresses can be used or if
 > no cluster external access to the virtual environment is required.
 
 Follow the instructions in the [official MetalLB documentation][metallb-docs]
@@ -149,13 +149,13 @@ nodes. Arista provides a controller for cEOS nodes.
 Deploy the Arista controller:
 
 ```bash
-oc apply -f https://raw.githubusercontent.com/aristanetworks/arista-ceoslab-operator/v1.0.2/config/kustomized/manifest.yaml
+oc apply -f https://raw.githubusercontent.com/aristanetworks/arista-ceoslab-operator/v2.0.1/config/kustomized/manifest.yaml
 ```
 
 Deploy a basic topology with three cEOS virtual instances into a new namespace:
 
 > Make sure the correct `image` is set for `ARISTA_CEOS` nodes in
-> [3-node-ceos.pb.txt](/topologies/3-node-ceos.pb.txt) if you use a different
+> [3-node-ceos.pb.txt](topologies/3-node-ceos.pb.txt) if you use a different
 > version of cEOS.
 
 ```bash
@@ -163,8 +163,8 @@ namespace=3-node-ceos
 oc create namespace $namespace
 tmp_dir=$(mktemp -d)
 cp -r topologies/ $tmp_dir
-echo "name: \"$namespace\"" >> $tmp_dir/topologies/3-node-ceos.pb.txt
-kne create $tmp_dir/topologies/3-node-ceos.pb.txt --kubecfg $KUBECONFIG
+echo "name: \"$namespace\"" >> $tmp_dirtopologies/3-node-ceos.pb.txt
+kne create $tmp_dirtopologies/3-node-ceos.pb.txt --kubecfg $KUBECONFIG
 ```
 
 Where:
@@ -223,7 +223,7 @@ functionality that is only available in the commercially supported version.
 > Reach out to the [Keysight Support][keysight-support] in order to gain access
 > to the container images for the commercially supported version.
 
-Install the IXIA-C traffic generator:
+Install the Ixia-C traffic generator:
 
 ```bash
 oc apply -f https://github.com/open-traffic-generator/ixia-c-operator/releases/download/v0.2.2/ixiatg-operator.yaml
@@ -251,26 +251,26 @@ sed -i -- 's/"release": "0.0.1-3423"/"release": "local-0.0.1-3423"/g' manifests/
 oc apply -f manifests/ixiatg/config.yaml
 ```
 
-> For the deployment of the IXIA-C traffic generator with custom images the
+> For the deployment of the Ixia-C traffic generator with custom images the
 > version for nodes of type `IXIA_TG` specified in
-> [3-node-ceos-with-traffic.pb.txt](/topologies/3-node-ceos-with-traffic.pb.txt)
+> [3-node-ceos-with-traffic.pb.txt](topologies/3-node-ceos-with-traffic.pb.txt)
 > needs to match the release value at `.spec.data.versions` in
-> [config-public.yaml](/manifests/ixiatg/config-public.yaml) or
-> [config-private.yaml](/manifests/ixiatg/config-private.yaml). If you want to
+> [config-public.yaml](manifests/ixiatg/config-public.yaml) or
+> [config-licensed.yaml](manifests/ixiatg/config-licensed.yaml). If you want to
 > use a different version, make sure to adjust all files accordingly before
 > applying them to the cluster. The latest upstream version of this
 > configuration is published on the [ixia-c-operator
 > releases](https://github.com/open-traffic-generator/ixia-c/releases/) page.
 
-[3-node-ceos-with-traffic.pb.txt](/topologies/3-node-ceos-with-traffic.pb.txt)
+[3-node-ceos-with-traffic.pb.txt](topologies/3-node-ceos-with-traffic.pb.txt)
 uses the same topology with a broken BGP configuration as
-[3-node-ceos.pb.txt](/topologies/3-node-ceos.pb.txt) but added services for
+[3-node-ceos.pb.txt](topologies/3-node-ceos.pb.txt) but added services for
 traffic generation.
 
 Deploy this topology into a new namespace:
 
 > Make sure the correct `image` is set for `ARISTA_CEOS` nodes in
-> [3-node-ceos-with-traffic.pb.txt](/topologies/3-node-ceos-with-traffic.pb.txt)
+> [3-node-ceos-with-traffic.pb.txt](topologies/3-node-ceos-with-traffic.pb.txt)
 > if you use a different version of cEOS.
 
 ```bash
@@ -281,8 +281,8 @@ oc create namespace $namespace
 oc apply -f manifests/ixiatg/rbac.yaml -n $namespace
 tmp_dir=$(mktemp -d)
 cp -r topologies/ $tmp_dir
-echo "name: \"$namespace\"" >> $tmp_dir/topologies/3-node-ceos-with-traffic.pb.txt
-kne create $tmp_dir/topologies/3-node-ceos-with-traffic.pb.txt --kubecfg $KUBECONFIG
+echo "name: \"$namespace\"" >> $tmp_dirtopologies/3-node-ceos-with-traffic.pb.txt
+kne create $tmp_dirtopologies/3-node-ceos-with-traffic.pb.txt --kubecfg $KUBECONFIG
 ```
 
 Where:
@@ -296,7 +296,7 @@ Where:
 Once the command returns successfully, a new topology consisting of several
 switches and a reference implementation of the [Open Traffic Generator
 API](https://github.com/open-traffic-generator/models) has been deployed with
-the [IXIA-C traffic
+the [Ixia-C traffic
 generator](https://github.com/open-traffic-generator/ixia-c).
 
 ```bash
@@ -359,7 +359,7 @@ time="2022-10-11T19:57:56Z" level=info msg=stopped.
 ```
 
 > The following steps require access to the commercially supported version of
-> IXIA-C traffic generator. Using the open-source version does not work as it
+> Ixia-C traffic generator. Using the open-source version does not work as it
 > does not provide a protocol-engine container image. Reach out to the [Keysight
 > Support][keysight-support] in order to gain access to their private container
 > registries.
@@ -421,8 +421,8 @@ oc create namespace $namespace
 oc apply -f manifests/ixiatg/rbac.yaml -n $namespace
 tmp_dir=$(mktemp -d)
 cp -r topologies/ $tmp_dir
-echo "name: \"$namespace\"" >> $tmp_dir/topologies/3-node-ceos-with-traffic-fixed.pb.txt
-kne create $tmp_dir/topologies/3-node-ceos-with-traffic-fixed.pb.txt --kubecfg $KUBECONFIG
+echo "name: \"$namespace\"" >> $tmp_dirtopologies/3-node-ceos-with-traffic-fixed.pb.txt
+kne create $tmp_dirtopologies/3-node-ceos-with-traffic-fixed.pb.txt --kubecfg $KUBECONFIG
 ```
 
 Where:
@@ -479,7 +479,7 @@ more sophisticated approaches such as deployments since a failed instance could
 indicate that a critical error caused the virtual instance to crash and in a
 testing environment recovering automatically might be a bad idea.
 
-IXIA-C traffic generation as described in the [KNE examples][kne-examples] does
+Ixia-C traffic generation as described in the [KNE examples][kne-examples] does
 not seem to work on OpenShift out of the box as IXIA requires additional
 privileges and seem to have problems handling arbitrary UID which are enforced
 by OpenShift. Due to this, containers images have been rebuilt and a bunch of
@@ -489,7 +489,7 @@ before considering going into production reaching out to the vendors in order to
 build a supported solution should be the first thing to do.
 
 [kne]: https://github.com/openconfig/kne
-[kne-docs]: https://github.com/openconfig/kne/blob/main/docs/setup.md
+[kne-docs]: https://github.com/openconfig/kne/blob/v0.1.6/docs/setup.md
 [okd-docs]: https://docs.okd.io/
 [openshift-docs]: https://docs.openshift.com/
 [okd-the-hard-way]: https://github.com/raballew/okd-the-hard-way
