@@ -1,0 +1,67 @@
+---
+env:
+  IMAGE_NAME: otgen
+jobs:
+  publish:
+    if: github.event_name == 'push'
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download
+        uses: actions/download-artifact@v3
+        with:
+          name: container
+      - name: Load
+        run: docker load -i container.tar
+      - name: Authenticate
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: Publish
+        run: |
+          IMAGE_ID=ghcr.io/${{ github.repository }}/$IMAGE_NAME
+
+          # Change all uppercase to lowercase
+          IMAGE_ID=$(echo ${IMAGE_ID} | tr '[A-Z]' '[a-z]')
+
+          # Strip git ref prefix from version
+          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+          if [[ "${{ github.ref }}" != *"refs/tags/"* ]]; then
+            [ "${VERSION}" == "main" ] && VERSION=latest
+          fi
+
+          echo IMAGE_ID=${IMAGE_ID}
+          echo VERSION=${VERSION}
+
+          USER=$(echo "${GITHUB_REPOSITORY}" | cut -d ";" -f 1 | tr '[A-Z]' '[a-z]')
+          REPOSITORY=$(echo "${GITHUB_REPOSITORY}" | cut -d ";" -f 2 | tr '[A-Z]' '[a-z]')
+
+          echo USER=${USER}
+          echo REPOSITORY=${REPOSITORY}
+
+          docker tag ${IMAGE_ID} ${IMAGE_ID}:${{ github.sha }}
+          docker push ${IMAGE_ID}:${{ github.sha }}
+          docker tag ${IMAGE_ID} ${IMAGE_ID}:${VERSION}
+          docker push ${IMAGE_ID}:${VERSION}
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup build environment
+        run: docker build . --file containers/Containerfile.otgen --tag ${IMAGE_NAME}
+      - name: Save
+        run: docker save ${IMAGE_NAME} -o container.tar
+      - name: Upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: container
+          path: container.tar
+name: Build otgen container image
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+    tags:
+      - "[0-9]+.[0-9]+.[0-9]+"
