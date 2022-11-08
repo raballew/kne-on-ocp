@@ -1,5 +1,12 @@
 ---
 updates:
+  - directory: containers/
+    labels:
+      - security
+    open-pull-requests-limit: 3
+    package-ecosystem: docker
+    schedule:
+      interval: daily
   - directory: /
     labels:
       - security
