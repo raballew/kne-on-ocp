@@ -1,6 +1,8 @@
 nodes: {
     name: "r1"
-    type: ARISTA_CEOS
+    vendor: ARISTA
+    model: "ceos"
+    os: "eos"
     config: {
         config_path: "/mnt/flash"
         config_file: "startup-config"
@@ -17,7 +19,9 @@ nodes: {
 }
 nodes: {
     name: "r2"
-    type: ARISTA_CEOS
+    vendor: ARISTA
+    model: "ceos"
+    os: "eos"
     config: {
         config_path: "/mnt/flash"
         config_file: "startup-config"
@@ -34,7 +38,9 @@ nodes: {
 }
 nodes: {
     name: "r3"
-    type: ARISTA_CEOS
+    vendor: ARISTA
+    model: "ceos"
+    os: "eos"
     config: {
         config_path: "/mnt/flash"
         config_file: "startup-config"
@@ -48,58 +54,4 @@ nodes: {
         }
         image: "image-registry.openshift-image-registry.svc:5000/openshift/ceos64:4.28.3M"
     }
-}
-links: {
-    a_node: "r1"
-    a_int: "eth1"
-    z_node: "r2"
-    z_int: "eth1"
-}
-links: {
-    a_node: "r1"
-    a_int: "eth2"
-    z_node: "r2"
-    z_int: "eth2"
-}
-links: {
-    a_node: "r1"
-    a_int: "eth3"
-    z_node: "r2"
-    z_int: "eth3"
-}
-links: {
-    a_node: "r1"
-    a_int: "eth4"
-    z_node: "r3"
-    z_int: "eth1"
-}
-links: {
-    a_node: "r1"
-    a_int: "eth5"
-    z_node: "r3"
-    z_int: "eth2"
-}
-links: {
-    a_node: "r1"
-    a_int: "eth6"
-    z_node: "r3"
-    z_int: "eth3"
-}
-links: {
-    a_node: "r2"
-    a_int: "eth4"
-    z_node: "r3"
-    z_int: "eth4"
-}
-links: {
-    a_node: "r2"
-    a_int: "eth5"
-    z_node: "r3"
-    z_int: "eth5"
-}
-links: {
-    a_node: "r2"
-    a_int: "eth6"
-    z_node: "r3"
-    z_int: "eth6"
 }

@@ -1,10 +1,12 @@
 nodes: {
     name: "r1"
-    type: ARISTA_CEOS
+    vendor: ARISTA
+    model: "ceos"
+    os: "eos"
     config: {
         config_path: "/mnt/flash"
         config_file: "startup-config"
-        file: "ceos/r1-config-fixed"
+        file: "ceos/r1-config"
         cert: {
             self_signed: {
                 cert_name: "gnmiCert.pem",
@@ -17,11 +19,13 @@ nodes: {
 }
 nodes: {
     name: "r2"
-    type: ARISTA_CEOS
+    vendor: ARISTA
+    model: "ceos"
+    os: "eos"
     config: {
         config_path: "/mnt/flash"
         config_file: "startup-config"
-        file: "ceos/r2-config-fixed"
+        file: "ceos/r2-config"
         cert: {
             self_signed: {
                 cert_name: "gnmiCert.pem",
@@ -34,11 +38,13 @@ nodes: {
 }
 nodes: {
     name: "r3"
-    type: ARISTA_CEOS
+    vendor: ARISTA
+    model: "ceos"
+    os: "eos"
     config: {
         config_path: "/mnt/flash"
         config_file: "startup-config"
-        file: "ceos/r3-config-fixed"
+        file: "ceos/r3-config"
         cert: {
             self_signed: {
                 cert_name: "gnmiCert.pem",
@@ -51,8 +57,8 @@ nodes: {
 }
 nodes: {
     name: "otg"
-    type: IXIA_TG
-    version: "local-0.0.1-3423"
+    vendor: KEYSIGHT
+    version: "local-0.0.1-3587"
     services: {
         key: 443
         value: {
@@ -147,7 +153,6 @@ links: {
     z_node: "otg"
     z_int: "eth3"
 }
-
 links: {
     a_node: "otg"
     a_int: "eth4"

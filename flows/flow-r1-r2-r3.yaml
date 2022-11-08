@@ -1,221 +1,447 @@
+---
 devices:
-  - name: otgEth1
+  - bgp:
+      ipv4_interfaces:
+        - ipv4_name: otg1.eth[0].ipv4[0]
+          peers:
+            - as_number: 1111
+              as_number_width: four
+              as_type: ebgp
+              name: otg1.bgp4.peer[0]
+              peer_address: 10.10.10.2
+              v4_routes:
+                - addresses:
+                    - address: 198.51.100.0
+                      count: 1
+                      prefix: 24
+                      step: 1
+                  name: otg1.bgp4.peer[0].rr4
+                  next_hop_address_type: ipv4
+                  next_hop_ipv4_address: 10.10.10.1
+                  next_hop_mode: manual
+      router_id: 2.2.2.4
     ethernets:
-      - name: otgEth1.eth
+      - ipv4_addresses:
+          - address: 10.10.10.1
+            gateway: 10.10.10.2
+            name: otg1.eth[0].ipv4[0]
+            prefix: 24
+        mac: 02:00:00:00:01:aa
+        mtu: 1500
+        name: otg1.eth[0]
         port_name: eth1
-        mac: "00:00:01:01:01:01"
-        ipv4_addresses:
-          - name: otgEth1.ipv4
-            address: "10.10.10.1"
-            gateway: "10.10.10.2"
-    bgp:
-      router_id: "10.10.10.1"
+    name: otg1
+  - bgp:
       ipv4_interfaces:
-        - ipv4_name: "otgEth1.ipv4"
+        - ipv4_name: otg2.eth[0].ipv4[0]
           peers:
-            - name: otgEth1.bgp4.peer
-              peer_address: "10.10.10.2"
-              as_number: 1
+            - as_number: 2222
+              as_number_width: four
               as_type: ebgp
+              name: otg2.bgp4.peer[0]
+              peer_address: 20.20.20.2
               v4_routes:
-                - name: otgEth1.bgp4.peer.rr4
-                  next_hop_ipv4_address: "10.10.10.1"
+                - addresses:
+                    - address: 203.0.113.0
+                      count: 1
+                      prefix: 24
+                      step: 1
+                  name: otg2.bgp4.peer[0].rr4
                   next_hop_address_type: ipv4
+                  next_hop_ipv4_address: 20.20.20.1
                   next_hop_mode: manual
-                  addresses:
-                    - address: 20.20.20.0
-                      prefix: 24
-                      count: 5
-                    - address: 30.30.30.0
-                      prefix: 24
-                      count: 5
-  - name: otgEth3
+      router_id: 2.2.2.5
     ethernets:
-      - name: otgEth3.eth
-        port_name: eth3
-        mac: "00:00:03:03:03:03"
-        ipv4_addresses:
-          - name: otgEth3.ipv4
-            address: "30.30.30.1"
-            gateway: "30.30.30.2"
-    bgp:
-      router_id: "30.30.30.1"
-      ipv4_interfaces:
-        - ipv4_name: "otgEth3.ipv4"
-          peers:
-            - name: otgEth3.bgp4.peer
-              peer_address: "30.30.30.2"
-              as_number: 1
-              as_type: ebgp
-              v4_routes:
-                - name: otgEth3.bgp4.peer.rr4
-                  next_hop_ipv4_address: "30.30.30.1"
-                  next_hop_address_type: ipv4
-                  next_hop_mode: manual
-                  addresses:
-                    - address: 10.10.10.0
-                      prefix: 24
-                      count: 5
-                    - address: 20.20.20.0
-                      prefix: 24
-                      count: 5
-  - name: otgEth2
-    ethernets:
-      - name: otgEth2.eth
+      - ipv4_addresses:
+          - address: 20.20.20.1
+            gateway: 20.20.20.2
+            name: otg2.eth[0].ipv4[0]
+            prefix: 24
+        mac: 02:00:00:00:02:aa
+        mtu: 1500
+        name: otg2.eth[0]
         port_name: eth2
-        mac: "00:00:02:02:02:02"
-        ipv4_addresses:
-          - name: otgEth2.ipv4
-            address: "20.20.20.1"
-            gateway: "20.20.20.2"
-    bgp:
-      router_id: "20.20.20.1"
+    name: otg2
+  - bgp:
       ipv4_interfaces:
-        - ipv4_name: "otgEth2.ipv4"
+        - ipv4_name: otg3.eth[0].ipv4[0]
           peers:
-            - name: otgEth2.bgp4.peer
-              peer_address: "20.20.20.2"
-              as_number: 1
+            - as_number: 3333
+              as_number_width: four
               as_type: ebgp
+              name: otg3.bgp4.peer[0]
+              peer_address: 30.30.30.2
               v4_routes:
-                - name: otgEth2.bgp4.peer.rr4
-                  next_hop_ipv4_address: "20.20.20.1"
+                - addresses:
+                    - address: 186.0.113.0
+                      count: 1
+                      prefix: 24
+                      step: 1
+                  name: otg3.bgp4.peer[0].rr4
                   next_hop_address_type: ipv4
+                  next_hop_ipv4_address: 30.30.30.1
                   next_hop_mode: manual
-                  addresses:
-                    - address: 10.10.10.0
-                      prefix: 24
-                      count: 5
-                    - address: 30.30.30.0
-                      prefix: 24
-                      count: 5
+      router_id: 2.2.2.6
+    ethernets:
+      - ipv4_addresses:
+          - address: 30.30.30.1
+            gateway: 30.30.30.2
+            name: otg3.eth[0].ipv4[0]
+            prefix: 24
+        mac: 02:00:00:00:03:aa
+        mtu: 1500
+        name: otg3.eth[0]
+        port_name: eth3
+    name: otg3
 flows:
-  - name: eth1>eth2
-    duration:
+  - duration:
       choice: fixed_packets
       fixed_packets:
         gap: 12
-        packets: 500
-    rate:
-      choice: pps
-      pps: 1000
-    size:
-      choice: fixed
-      fixed: 512
+        packets: 1000
     metrics:
       enable: true
       loss: false
       timestamps: false
+    name: eth1>eth2
+    packet:
+      - choice: ethernet
+        ethernet:
+          src:
+            choice: value
+            value: 02:00:00:00:01:aa
+      - choice: ipv4
+        ipv4:
+          dst:
+            choice: increment
+            increment:
+              count: "253"
+              start: 203.0.113.1
+              step: 0.0.0.1
+          src:
+            choice: increment
+            increment:
+              count: "253"
+              start: 198.51.100.1
+              step: 0.0.0.1
+          version:
+            choice: value
+            value: 4
+      - choice: tcp
+        tcp:
+          dst_port:
+            choice: value
+            value: 7
+          src_port:
+            choice: increment
+            increment:
+              count: 64511
+              start: 1024
+              step: 7
+    rate:
+      choice: pps
+      pps: "1000"
+    size:
+      choice: fixed
+      fixed: 256
     tx_rx:
-      choice: port
-      port:
-        tx_name: eth1
-        rx_name: eth2
-  - name: eth1>eth3
-    duration:
+      choice: device
+      device:
+        mode: mesh
+        rx_names:
+          - otg2.eth[0].ipv4[0]
+        tx_names:
+          - otg1.eth[0].ipv4[0]
+  - duration:
       choice: fixed_packets
       fixed_packets:
         gap: 12
-        packets: 500
-    rate:
-      choice: pps
-      pps: 1000
-    size:
-      choice: fixed
-      fixed: 512
+        packets: 1000
     metrics:
       enable: true
       loss: false
       timestamps: false
+    name: eth1>eth3
+    packet:
+      - choice: ethernet
+        ethernet:
+          src:
+            choice: value
+            value: 02:00:00:00:01:aa
+      - choice: ipv4
+        ipv4:
+          dst:
+            choice: increment
+            increment:
+              count: "253"
+              start: 186.0.113.1
+              step: 0.0.0.1
+          src:
+            choice: increment
+            increment:
+              count: "253"
+              start: 198.51.100.1
+              step: 0.0.0.1
+          version:
+            choice: value
+            value: 4
+      - choice: tcp
+        tcp:
+          dst_port:
+            choice: value
+            value: 7
+          src_port:
+            choice: increment
+            increment:
+              count: 64511
+              start: 1024
+              step: 7
+    rate:
+      choice: pps
+      pps: "1000"
+    size:
+      choice: fixed
+      fixed: 256
     tx_rx:
-      choice: port
-      port:
-        tx_name: eth1
-        rx_name: eth3
-  - name: eth2>eth1
-    duration:
+      choice: device
+      device:
+        mode: mesh
+        rx_names:
+          - otg3.eth[0].ipv4[0]
+        tx_names:
+          - otg1.eth[0].ipv4[0]
+  - duration:
       choice: fixed_packets
       fixed_packets:
         gap: 12
-        packets: 500
-    rate:
-      choice: pps
-      pps: 1000
-    size:
-      choice: fixed
-      fixed: 512
+        packets: 1000
     metrics:
       enable: true
       loss: false
       timestamps: false
+    name: eth2>eth1
+    packet:
+      - choice: ethernet
+        ethernet:
+          src:
+            choice: value
+            value: 02:00:00:00:02:aa
+      - choice: ipv4
+        ipv4:
+          dst:
+            choice: increment
+            increment:
+              count: "253"
+              start: 198.51.100.1
+              step: 0.0.0.1
+          src:
+            choice: increment
+            increment:
+              count: "253"
+              start: 203.0.113.1
+              step: 0.0.0.1
+          version:
+            choice: value
+            value: 4
+      - choice: tcp
+        tcp:
+          dst_port:
+            choice: value
+            value: 7
+          src_port:
+            choice: increment
+            increment:
+              count: 64511
+              start: 1024
+              step: 7
+    rate:
+      choice: pps
+      pps: "1000"
+    size:
+      choice: fixed
+      fixed: 256
     tx_rx:
-      choice: port
-      port:
-        tx_name: eth2
-        rx_name: eth1
-  - name: eth2>eth3
-    duration:
+      choice: device
+      device:
+        mode: mesh
+        rx_names:
+          - otg1.eth[0].ipv4[0]
+        tx_names:
+          - otg2.eth[0].ipv4[0]
+  - duration:
       choice: fixed_packets
       fixed_packets:
         gap: 12
-        packets: 500
-    rate:
-      choice: pps
-      pps: 1000
-    size:
-      choice: fixed
-      fixed: 512
+        packets: 1000
     metrics:
       enable: true
       loss: false
       timestamps: false
+    name: eth2>eth3
+    packet:
+      - choice: ethernet
+        ethernet:
+          src:
+            choice: value
+            value: 02:00:00:00:02:aa
+      - choice: ipv4
+        ipv4:
+          dst:
+            choice: increment
+            increment:
+              count: "253"
+              start: 186.0.113.1
+              step: 0.0.0.1
+          src:
+            choice: increment
+            increment:
+              count: "253"
+              start: 203.0.113.1
+              step: 0.0.0.1
+          version:
+            choice: value
+            value: 4
+      - choice: tcp
+        tcp:
+          dst_port:
+            choice: value
+            value: 7
+          src_port:
+            choice: increment
+            increment:
+              count: 64511
+              start: 1024
+              step: 7
+    rate:
+      choice: pps
+      pps: "1000"
+    size:
+      choice: fixed
+      fixed: 256
     tx_rx:
-      choice: port
-      port:
-        tx_name: eth2
-        rx_name: eth3
-  - name: eth3>eth1
-    duration:
+      choice: device
+      device:
+        mode: mesh
+        rx_names:
+          - otg3.eth[0].ipv4[0]
+        tx_names:
+          - otg2.eth[0].ipv4[0]
+  - duration:
       choice: fixed_packets
       fixed_packets:
         gap: 12
-        packets: 500
-    rate:
-      choice: pps
-      pps: 1000
-    size:
-      choice: fixed
-      fixed: 512
+        packets: 1000
     metrics:
       enable: true
       loss: false
       timestamps: false
+    name: eth3>eth1
+    packet:
+      - choice: ethernet
+        ethernet:
+          src:
+            choice: value
+            value: 02:00:00:00:03:aa
+      - choice: ipv4
+        ipv4:
+          dst:
+            choice: increment
+            increment:
+              count: "253"
+              start: 198.51.100.1
+              step: 0.0.0.1
+          src:
+            choice: increment
+            increment:
+              count: "253"
+              start: 186.0.113.1
+              step: 0.0.0.1
+          version:
+            choice: value
+            value: 4
+      - choice: tcp
+        tcp:
+          dst_port:
+            choice: value
+            value: 7
+          src_port:
+            choice: increment
+            increment:
+              count: 64511
+              start: 1024
+              step: 7
+    rate:
+      choice: pps
+      pps: "1000"
+    size:
+      choice: fixed
+      fixed: 256
     tx_rx:
-      choice: port
-      port:
-        tx_name: eth3
-        rx_name: eth1
-  - name: eth3>eth2
-    duration:
+      choice: device
+      device:
+        mode: mesh
+        rx_names:
+          - otg1.eth[0].ipv4[0]
+        tx_names:
+          - otg3.eth[0].ipv4[0]
+  - duration:
       choice: fixed_packets
       fixed_packets:
         gap: 12
-        packets: 500
-    rate:
-      choice: pps
-      pps: 1000
-    size:
-      choice: fixed
-      fixed: 512
+        packets: 1000
     metrics:
       enable: true
       loss: false
       timestamps: false
+    name: eth3>eth2
+    packet:
+      - choice: ethernet
+        ethernet:
+          src:
+            choice: value
+            value: 02:00:00:00:03:aa
+      - choice: ipv4
+        ipv4:
+          dst:
+            choice: increment
+            increment:
+              count: "253"
+              start: 203.0.113.1
+              step: 0.0.0.1
+          src:
+            choice: increment
+            increment:
+              count: "253"
+              start: 186.0.113.1
+              step: 0.0.0.1
+          version:
+            choice: value
+            value: 4
+      - choice: tcp
+        tcp:
+          dst_port:
+            choice: value
+            value: 7
+          src_port:
+            choice: increment
+            increment:
+              count: 64511
+              start: 1024
+              step: 7
+    rate:
+      choice: pps
+      pps: "1000"
+    size:
+      choice: fixed
+      fixed: 256
     tx_rx:
-      choice: port
-      port:
-        tx_name: eth3
-        rx_name: eth2
+      choice: device
+      device:
+        mode: mesh
+        rx_names:
+          - otg2.eth[0].ipv4[0]
+        tx_names:
+          - otg3.eth[0].ipv4[0]
 ports:
   - location: eth1
     name: eth1

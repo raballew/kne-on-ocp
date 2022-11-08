@@ -65,6 +65,7 @@ To get started clone the source code required for this guide:
 
 ```bash
 git clone https://github.com/raballew/kne-on-ocp.git
+cd kne-on-ocp
 ```
 
 ## Deploy meshnet CNI
@@ -154,17 +155,20 @@ oc apply -f https://raw.githubusercontent.com/aristanetworks/arista-ceoslab-oper
 
 Deploy a basic topology with three cEOS virtual instances into a new namespace:
 
-> Make sure the correct `image` is set for `ARISTA_CEOS` nodes in
+> Make sure the correct `image` is set for `ARISTA` nodes in
 > [3-node-ceos.pb.txt](topologies/3-node-ceos.pb.txt) if you use a different
 > version of cEOS.
 
 ```bash
 namespace=3-node-ceos
 oc create namespace $namespace
+# Fixes https://github.com/open-traffic-generator/ixia-c-operator/issues/18
+# Fixes https://github.com/aristanetworks/arista-ceoslab-operator/issues/5
+oc apply -f manifests/rbac/privileged-patch.yaml -n $namespace
 tmp_dir=$(mktemp -d)
 cp -r topologies/ $tmp_dir
-echo "name: \"$namespace\"" >> $tmp_dirtopologies/3-node-ceos.pb.txt
-kne create $tmp_dirtopologies/3-node-ceos.pb.txt --kubecfg $KUBECONFIG
+echo "name: \"$namespace\"" >> $tmp_dir/topologies/3-node-ceos.pb.txt
+kne create $tmp_dir/topologies/3-node-ceos.pb.txt --kubecfg $KUBECONFIG
 ```
 
 Where:
@@ -226,19 +230,19 @@ functionality that is only available in the commercially supported version.
 Install the Ixia-C traffic generator:
 
 ```bash
-oc apply -f https://github.com/open-traffic-generator/ixia-c-operator/releases/download/v0.2.2/ixiatg-operator.yaml
+oc apply -f https://github.com/open-traffic-generator/ixia-c-operator/releases/download/v0.2.5/ixiatg-operator.yaml
 # Fixes https://github.com/open-traffic-generator/ixia-c-operator/issues/15
 oc set resources deployment ixiatg-op-controller-manager -n ixiatg-op-system --limits memory=200Mi
 ```
 
 You need to decide if you want to use publicly available container images for
 the open-source version or container images hosted on a private registry for the
-commercially supported version:
+commercially supported version.
 
 If you want to use the open-source version apply the following configuration:
 
 ```bash
-oc apply -f manifests/ixiatg/config.yaml
+oc apply -f manifests/ixiatg/config-open-source.yaml
 ```
 
 If you want to use the commercially supported version apply the following
@@ -246,16 +250,14 @@ configuration and [update the global cluster pull secret][global-pull-secret] by
 appending a new pull secret for Keysights private container registry:
 
 ```bash
-curl -L https://github.com/open-traffic-generator/ixia-c/releases/download/v0.0.1-3423/ixia-configmap.yaml > manifests/ixiatg/config.yaml
-sed -i -- 's/"release": "0.0.1-3423"/"release": "local-0.0.1-3423"/g' manifests/ixiatg/config.yaml
-oc apply -f manifests/ixiatg/config.yaml
+oc apply -f manifests/ixiatg/config-licensed.yaml
 ```
 
 > For the deployment of the Ixia-C traffic generator with custom images the
 > version for nodes of type `IXIA_TG` specified in
 > [3-node-ceos-with-traffic.pb.txt](topologies/3-node-ceos-with-traffic.pb.txt)
 > needs to match the release value at `.spec.data.versions` in
-> [config-public.yaml](manifests/ixiatg/config-public.yaml) or
+> [config-open-source.yaml](manifests/ixiatg/config-open-source.yaml) or
 > [config-licensed.yaml](manifests/ixiatg/config-licensed.yaml). If you want to
 > use a different version, make sure to adjust all files accordingly before
 > applying them to the cluster. The latest upstream version of this
@@ -269,7 +271,7 @@ traffic generation.
 
 Deploy this topology into a new namespace:
 
-> Make sure the correct `image` is set for `ARISTA_CEOS` nodes in
+> Make sure the correct `image` is set for `ARISTA` nodes in
 > [3-node-ceos-with-traffic.pb.txt](topologies/3-node-ceos-with-traffic.pb.txt)
 > if you use a different version of cEOS.
 
@@ -278,11 +280,12 @@ namespace=3-node-ceos-with-traffic
 oc create namespace $namespace
 # Fixes https://github.com/open-traffic-generator/ixia-c-operator/issues/18
 # Fixes https://github.com/open-traffic-generator/ixia-c-operator/issues/19
-oc apply -f manifests/ixiatg/rbac.yaml -n $namespace
+# Fixes https://github.com/aristanetworks/arista-ceoslab-operator/issues/5
+oc apply -f manifests/rbac/privileged-patch.yaml -n $namespace
 tmp_dir=$(mktemp -d)
 cp -r topologies/ $tmp_dir
-echo "name: \"$namespace\"" >> $tmp_dirtopologies/3-node-ceos-with-traffic.pb.txt
-kne create $tmp_dirtopologies/3-node-ceos-with-traffic.pb.txt --kubecfg $KUBECONFIG
+echo "name: \"$namespace\"" >> $tmp_dir/topologies/3-node-ceos-with-traffic.pb.txt
+kne create $tmp_dir/topologies/3-node-ceos-with-traffic.pb.txt --kubecfg $KUBECONFIG
 ```
 
 Where:
@@ -325,8 +328,8 @@ Tool](https://github.com/open-traffic-generator/otgen) which will be used in
 this guide.
 
 In order to validate the functionality of the traffic generator deploy a job
-that triggers flows trough a direct link between two ports (`eth4` and `eth5`)
-on the traffic generator:
+that triggers a back-to-back test using a direct link between two ports (`eth4`
+and `eth5`) on the traffic generator:
 
 ```bash
 oc create -f flows/job-flow-otg-otg.yaml -n $namespace
@@ -340,22 +343,12 @@ generator is operational.
 ```bash
 oc get job -l flow=otg-otg -o name -n $namespace | xargs oc logs -n $namespace -f
 
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-100   805  100   805    0     0   3120      0 --:--:-- --:--:-- --:--:--  3120
-time="2022-10-11T19:57:53Z" level=info msg="Applying OTG config..."
-time="2022-10-11T19:57:53Z" level=info msg=ready.
-time="2022-10-11T19:57:53Z" level=info msg="Starting traffic..."
-time="2022-10-11T19:57:53Z" level=info msg=started...
-time="2022-10-11T19:57:53Z" level=info msg="Total packets to transmit: 1000, ETA is: 1s\n"
 +-----------+-----------+-----------+
 |   NAME    | FRAMES TX | FRAMES RX |
 +-----------+-----------+-----------+
-| eth4>eth5 |       500 |       500 |
-| eth5>eth4 |       500 |       500 |
+| eth4>eth5 |      1000 |      1000 |
+| eth5>eth4 |      1000 |      1000 |
 +-----------+-----------+-----------+
-
-time="2022-10-11T19:57:56Z" level=info msg=stopped.
 ```
 
 > The following steps require access to the commercially supported version of
@@ -383,26 +376,16 @@ on any receiving end.
 ```bash
 oc get job -l flow=r1-r2-r3 -o name -n $namespace | xargs oc logs -n $namespace -f
 
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-100  2344  100  2344    0     0  66971      0 --:--:-- --:--:-- --:--:-- 68941
-time="2022-10-11T20:22:12Z" level=info msg="Applying OTG config..."
-time="2022-10-11T20:22:53Z" level=info msg=ready.
-time="2022-10-11T20:22:53Z" level=info msg="Starting traffic..."
-time="2022-10-11T20:22:53Z" level=info msg=started...
-time="2022-10-11T20:22:53Z" level=info msg="Total packets to transmit: 3000, ETA is: 1s\n"
 +-----------+-----------+-----------+
-|   NAME    | FRAMES TX | FRAMES RX |
+|   NAME    | FRAMES RX | FRAMES TX |
 +-----------+-----------+-----------+
-| eth1>eth2 |       500 |         0 |
-| eth1>eth3 |       500 |         0 |
-| eth2>eth1 |       500 |         0 |
-| eth2>eth3 |       500 |         0 |
-| eth3>eth1 |       500 |         0 |
-| eth3>eth2 |       500 |         0 |
+| eth1>eth2 |         0 |      1000 |
+| eth1>eth3 |         0 |      1000 |
+| eth2>eth1 |         0 |      1000 |
+| eth2>eth3 |         0 |      1000 |
+| eth3>eth1 |         0 |      1000 |
+| eth3>eth2 |         0 |      1000 |
 +-----------+-----------+-----------+
-
-time="2022-10-11T20:22:59Z" level=info msg=stopped.
 ```
 
 Lets fix this by first removing the broken topology:
@@ -418,11 +401,12 @@ namespace=3-node-ceos-with-traffic-fixed
 oc create namespace $namespace
 # Fixes https://github.com/open-traffic-generator/ixia-c-operator/issues/18
 # Fixes https://github.com/open-traffic-generator/ixia-c-operator/issues/19
-oc apply -f manifests/ixiatg/rbac.yaml -n $namespace
+# Fixes https://github.com/aristanetworks/arista-ceoslab-operator/issues/5
+oc apply -f manifests/rbac/privileged-patch.yaml -n $namespace
 tmp_dir=$(mktemp -d)
 cp -r topologies/ $tmp_dir
-echo "name: \"$namespace\"" >> $tmp_dirtopologies/3-node-ceos-with-traffic-fixed.pb.txt
-kne create $tmp_dirtopologies/3-node-ceos-with-traffic-fixed.pb.txt --kubecfg $KUBECONFIG
+echo "name: \"$namespace\"" >> $tmp_dir/topologies/3-node-ceos-with-traffic-fixed.pb.txt
+kne create $tmp_dir/topologies/3-node-ceos-with-traffic-fixed.pb.txt --kubecfg $KUBECONFIG
 ```
 
 Where:
@@ -440,26 +424,16 @@ frames is equal to the number of received frames:
 oc create -f flows/job-flow-r1-r2-r3.yaml -n $namespace
 oc get job -l flow=r1-r2-r3 -o name -n $namespace | xargs oc logs -n $namespace -f
 
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-100  2342  100  2342    0     0   9840      0 --:--:-- --:--:-- --:--:--  9881
-time="2022-10-11T20:45:56Z" level=info msg="Applying OTG config..."
-time="2022-10-11T20:46:01Z" level=info msg=ready.
-time="2022-10-11T20:46:01Z" level=info msg="Starting traffic..."
-time="2022-10-11T20:46:01Z" level=info msg=started...
-time="2022-10-11T20:46:01Z" level=info msg="Total packets to transmit: 3000, ETA is: 0s\n"
 +-----------+-----------+-----------+
 |   NAME    | FRAMES TX | FRAMES RX |
 +-----------+-----------+-----------+
-| eth1>eth3 |       500 |       500 |
-| eth2>eth1 |       500 |       500 |
-| eth2>eth3 |       500 |       500 |
-| eth3>eth1 |       500 |       500 |
-| eth3>eth2 |       500 |       500 |
-| eth1>eth2 |       500 |       500 |
+| eth2>eth3 |      1000 |      1000 |
+| eth3>eth1 |      1000 |      1000 |
+| eth3>eth2 |      1000 |      1000 |
+| eth1>eth2 |      1000 |      1000 |
+| eth1>eth3 |      1000 |      1000 |
+| eth2>eth1 |      1000 |      1000 |
 +-----------+-----------+-----------+
-
-time="2022-10-11T20:46:04Z" level=info msg=stopped.
 ```
 
 If you are finished with testing delete the topology:
@@ -479,17 +453,16 @@ more sophisticated approaches such as deployments since a failed instance could
 indicate that a critical error caused the virtual instance to crash and in a
 testing environment recovering automatically might be a bad idea.
 
-Ixia-C traffic generation as described in the [KNE examples][kne-examples] does
-not seem to work on OpenShift out of the box as IXIA requires additional
-privileges and seem to have problems handling arbitrary UID which are enforced
-by OpenShift. Due to this, containers images have been rebuilt and a bunch of
-patches have been applied to overcome these shortcomings. Keep in mind, that
-this was only done to proof the point that it is possible to run KNE on OCP and
-before considering going into production reaching out to the vendors in order to
-build a supported solution should be the first thing to do.
+The operators required to use node types supplied by vendors such as Arista or
+Keysight do not seem to work on OpenShift out of the box as it requires
+resources managed trough them still need additional privileges. Due to this
+limitation a RBAC patch has to be applied between namespace and topology
+creation. Keep in mind, that this was done to proof the point that it is
+possible to run KNE on OCP. Before considering going into production reaching
+out to the vendors in order to build a supported solution is highly recommended.
 
 [kne]: https://github.com/openconfig/kne
-[kne-docs]: https://github.com/openconfig/kne/blob/v0.1.6/docs/setup.md
+[kne-docs]: https://github.com/openconfig/kne/blob/main/docs/setup.md
 [okd-docs]: https://docs.okd.io/
 [openshift-docs]: https://docs.openshift.com/
 [okd-the-hard-way]: https://github.com/raballew/okd-the-hard-way
@@ -503,7 +476,5 @@ build a supported solution should be the first thing to do.
 [arista-ceos]: https://www.arista.com/assets/data/pdf/cEOS_Solution_Brief.pdf
 [ixia-c-otg]: https://github.com/open-traffic-generator/ixia-c
 [otg]: https://github.com/open-traffic-generator
-[kne-examples]:
-    https://github.com/openconfig/kne/blob/main/examples/arista/ceos-traffic/ceos-traffic.pb.txt
 [global-pull-secret]:
     https://docs.openshift.com/container-platform/4.11/openshift_images/managing_images/using-image-pull-secrets.html#images-update-global-pull-secret_using-image-pull-secrets
