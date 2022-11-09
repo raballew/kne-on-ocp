@@ -453,13 +453,13 @@ more sophisticated approaches such as deployments since a failed instance could
 indicate that a critical error caused the virtual instance to crash and in a
 testing environment recovering automatically might be a bad idea.
 
-The operators required to use node types supplied by vendors such as Arista or
-Keysight do not seem to work on OpenShift out of the box as it requires
-resources managed trough them still need additional privileges. Due to this
-limitation a RBAC patch has to be applied between namespace and topology
-creation. Keep in mind, that this was done to proof the point that it is
-possible to run KNE on OCP. Before considering going into production reaching
-out to the vendors in order to build a supported solution is highly recommended.
+The operators required to use different node types supplied by vendors such as
+Arista or Keysight do not seem to work on OpenShift out of the box as resources
+managed trough them still need additional privileges. Due to this limitation a
+RBAC patch has to be applied between namespace and topology creation. Keep in
+mind, that this was done to proof the point that it is possible to run KNE on
+OCP. Before considering going into production reaching out to the vendors in
+order to build a supported solution is highly recommended.
 
 [kne]: https://github.com/openconfig/kne
 [kne-docs]: https://github.com/openconfig/kne/blob/main/docs/setup.md
