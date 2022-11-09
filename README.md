@@ -101,7 +101,7 @@ from pod `r1`.
 ## Deploy MetalLB
 
 > This step is optional if you have already set up a load balancer so that
-> Services of type `LoadBalancer` with external IP addresses can be used or if
+> services of type `LoadBalancer` with external IP addresses can be used or if
 > no cluster external access to the virtual environment is required.
 
 Follow the instructions in the [official MetalLB documentation][metallb-docs]
@@ -324,7 +324,7 @@ In order to generate traffic scripts using
 against the newly deployed services (`*-otg-controller` and `*-otg-port-eth*`
 services as shown above). Another, more simplistic way of running tests is by
 using the [Open Traffic Generator CLI
-Tool](https://github.com/open-traffic-generator/otgen) which will be used in
+tool](https://github.com/open-traffic-generator/otgen) which will be used in
 this guide.
 
 In order to validate the functionality of the traffic generator deploy a job
@@ -394,7 +394,7 @@ Lets fix this by first removing the broken topology:
 oc delete namespace $namespace
 ```
 
-Then create a topology with a valid BGP configuration:
+Then create a topology with a valid configuration:
 
 ```bash
 namespace=3-node-ceos-with-traffic-fixed
