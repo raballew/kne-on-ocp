@@ -153,7 +153,29 @@ Deploy the Arista controller:
 oc apply -f https://raw.githubusercontent.com/aristanetworks/arista-ceoslab-operator/v2.0.1/config/kustomized/manifest.yaml
 ```
 
-Deploy a basic topology with three cEOS virtual instances into a new namespace:
+Deploy a basic topology with three cEOS virtual instances (`r1`, `r2`, `r3`)
+into a new namespace.
+
+```txt
+      ┌────┐                  ┌────┐                  ┌────┐
+      │eth3│                  │eth4│                  │eth5│
+    ┌─┴────┴──┐             ┌─┴────┴──┐             ┌─┴────┴──┐
+    │   r1    │             │   r2    │             │   r3    │
+    ├────┬────┤             ├────┬────┤             ├────┬────┤
+    │eth1│eth2│             │eth1│eth2│             │eth1│eth2│
+    └┬───┴──┬─┘             └─┬──┴───┬┘             └─┬──┴───┬┘
+     │      │                 │      │                │      │
+     │ 1.2.0.1/30      1.2.0.2/30  1.2.0.9/30    1.2.0.10/30 │
+     │      │                 │      │                │      │
+     │      └─────────────────┘      └────────────────┘      │
+1.2.0.5/30                                              1.2.0.6/30
+     │                                                       │
+     └───────────────────────────────────────────────────────┘
+
+r1: AS1, 2.2.2.1/32
+r2: AS1, 2.2.2.2/32
+r3: AS1, 2.2.2.3/32
+```
 
 > Make sure the correct `image` is set for `ARISTA` nodes in
 > [3-node-ceos.pb.txt](topologies/3-node-ceos.pb.txt) if you use a different
@@ -179,7 +201,8 @@ Where:
 > Do not interrupt the `kne` command. It can take minutes until it returns. Just
 > be patient and wait.
 
-Verify that the virtual instances are working:
+Wait a few minuted and then verify that the virtual instances are working
+properly:
 
 ```bash
 oc exec -it -n $namespace r1 -- Cli -c "show bgp statistics"
@@ -188,8 +211,9 @@ oc exec -it -n $namespace r3 -- Cli -c "show bgp statistics"
 ```
 
 > If you check the output you will realize that BGP does not seem to work
-> properly, as each virtual instance shows that `2 neighbors are in Connect
-> state`. This was done on purpose and will be fixed in one of the next steps.
+> properly, as each virtual instances shows that `1 neighbor is in Idle(NoIf)
+> state`. This is due to the fact, that in this topology the traffic generator
+> is not attached yet and can be ignored for the moment.
 
 You can also access each virtual instance by using their external or cluster IP
 address. Additionally you could use the Kubernetes DNS service to address each
@@ -230,9 +254,7 @@ functionality that is only available in the commercially supported version.
 Install the Ixia-C traffic generator:
 
 ```bash
-oc apply -f https://github.com/open-traffic-generator/ixia-c-operator/releases/download/v0.2.5/ixiatg-operator.yaml
-# Fixes https://github.com/open-traffic-generator/ixia-c-operator/issues/15
-oc set resources deployment ixiatg-op-controller-manager -n ixiatg-op-system --limits memory=200Mi
+oc apply -f https://github.com/open-traffic-generator/ixia-c-operator/releases/download/v0.2.6/ixiatg-operator.yaml
 ```
 
 You need to decide if you want to use publicly available container images for
@@ -269,6 +291,46 @@ uses the same topology with a broken BGP configuration as
 [3-node-ceos.pb.txt](topologies/3-node-ceos.pb.txt) but added services for
 traffic generation.
 
+```txt
+                             ┌───────┐
+                             │       │
+                             │       │
+                            ┌┴───┬───┴┐
+                            │eth4│eth5│
+                         ┌──┴────┴────┴─┐
+                         │      otg     │
+                         ├────┬────┬────┤
+          ┌──────────────┤eth1│eth2│eth3├──────────────┐
+          │              └────┴─┬──┴────┘              │
+          │                     │                      │
+    10.10.10.1/24         20.20.20.1/24          30.30.30.1/24
+          │                     │                      │
+          │                     │                      │
+    10.10.10.2/24         20.20.20.2/24          30.30.30.2/24
+          │                     │                      │
+      ┌───┴┐                  ┌─┴──┐                  ┌┴───┐
+      │eth3│                  │eth4│                  │eth5│
+    ┌─┴────┴──┐             ┌─┴────┴──┐             ┌─┴────┴──┐
+    │   r1    │             │   r2    │             │   r3    │
+    ├────┬────┤             ├────┬────┤             ├────┬────┤
+    │eth1│eth2│             │eth1│eth2│             │eth1│eth2│
+    └┬───┴──┬─┘             └─┬──┴───┬┘             └─┬──┴───┬┘
+     │      │                 │      │                │      │
+     │ 1.2.0.1/30      1.2.0.2/30  1.2.0.9/30    1.2.0.10/30 │
+     │      │                 │      │                │      │
+     │      └─────────────────┘      └────────────────┘      │
+1.2.0.5/30                                              1.2.0.6/30
+     │                                                       │
+     └───────────────────────────────────────────────────────┘
+
+r1: AS1, 2.2.2.1/32
+r2: AS1, 2.2.2.2/32
+r3: AS1, 2.2.2.3/32
+otg/eth1: AS1111, 2.2.2.4/32
+otg/eth2: AS2222, 2.2.2.5/32
+otg/eth3: AS3333, 2.2.2.6/32
+```
+
 Deploy this topology into a new namespace:
 
 > Make sure the correct `image` is set for `ARISTA` nodes in
@@ -279,7 +341,6 @@ Deploy this topology into a new namespace:
 namespace=3-node-ceos-with-traffic
 oc create namespace $namespace
 # Fixes https://github.com/open-traffic-generator/ixia-c-operator/issues/18
-# Fixes https://github.com/open-traffic-generator/ixia-c-operator/issues/19
 # Fixes https://github.com/aristanetworks/arista-ceoslab-operator/issues/5
 oc apply -f manifests/rbac/privileged-patch.yaml -n $namespace
 tmp_dir=$(mktemp -d)
@@ -370,8 +431,9 @@ is broken.
 oc create -f flows/job-flow-r1-r2-r3.yaml -n $namespace
 ```
 
-When inspecting the logs they confirm our assumption because no frames are seen
-on any receiving end.
+When inspecting the logs they confirm our assumption because no frames are
+received on `eth1` at all, indicating that the connection with `r2` (`eth2`) and
+`r3` (`eth3`) is misconfigured.
 
 ```bash
 oc get job -l flow=r1-r2-r3 -o name -n $namespace | xargs oc logs -n $namespace -f
@@ -379,14 +441,19 @@ oc get job -l flow=r1-r2-r3 -o name -n $namespace | xargs oc logs -n $namespace 
 +-----------+-----------+-----------+
 |   NAME    | FRAMES RX | FRAMES TX |
 +-----------+-----------+-----------+
-| eth1>eth2 |         0 |      1000 |
-| eth1>eth3 |         0 |      1000 |
+| eth3>eth2 |      1000 |      1000 |
+| eth1>eth2 |      1000 |      1000 |
+| eth1>eth3 |      1000 |      1000 |
 | eth2>eth1 |         0 |      1000 |
-| eth2>eth3 |         0 |      1000 |
+| eth2>eth3 |      1000 |      1000 |
 | eth3>eth1 |         0 |      1000 |
-| eth3>eth2 |         0 |      1000 |
 +-----------+-----------+-----------+
 ```
+
+By inspecting [flow-r1-r2-r3.yaml](flows/flow-r1-r2-r3.yaml) you will see that
+the traffic generator advertises a route for `198.51.100.0/24` but as shown in
+[r1-config](topologies/ceos/r1-config) the switch `r1` drops all inbound traffic
+for the neighbor `10.10.10.1` as part of the `PREFIX` route map.
 
 Lets fix this by first removing the broken topology:
 
@@ -394,13 +461,16 @@ Lets fix this by first removing the broken topology:
 oc delete namespace $namespace
 ```
 
-Then create a topology with a valid configuration:
+Inspect both configurations for [`r1`](topologies/ceos/r1-config) and
+[`r2`](topologies/ceos/r2-config)
+
+Then create a topology with a valid configuration
+[r1-config-fixed](topologies/ceos/r1-config-fixed):
 
 ```bash
 namespace=3-node-ceos-with-traffic-fixed
 oc create namespace $namespace
 # Fixes https://github.com/open-traffic-generator/ixia-c-operator/issues/18
-# Fixes https://github.com/open-traffic-generator/ixia-c-operator/issues/19
 # Fixes https://github.com/aristanetworks/arista-ceoslab-operator/issues/5
 oc apply -f manifests/rbac/privileged-patch.yaml -n $namespace
 tmp_dir=$(mktemp -d)

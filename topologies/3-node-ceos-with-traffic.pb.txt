@@ -58,7 +58,7 @@ nodes: {
 nodes: {
     name: "otg"
     vendor: KEYSIGHT
-    version: "local-0.0.1-3587"
+    version: "local-0.0.1-3619"
     services: {
         key: 443
         value: {
@@ -83,19 +83,37 @@ nodes: {
 }
 links: {
     a_node: "r1"
-    a_int: "eth9"
+    a_int: "eth1"
+    z_node: "r3"
+    z_int: "eth2"
+}
+links: {
+    a_node: "r1"
+    a_int: "eth2"
+    z_node: "r2"
+    z_int: "eth1"
+}
+links: {
+    a_node: "r2"
+    a_int: "eth2"
+    z_node: "r3"
+    z_int: "eth1"
+}
+links: {
+    a_node: "r1"
+    a_int: "eth3"
     z_node: "otg"
     z_int: "eth1"
 }
 links: {
     a_node: "r2"
-    a_int: "eth9"
+    a_int: "eth3"
     z_node: "otg"
     z_int: "eth2"
 }
 links: {
     a_node: "r3"
-    a_int: "eth9"
+    a_int: "eth3"
     z_node: "otg"
     z_int: "eth3"
 }

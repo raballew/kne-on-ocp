@@ -42,6 +42,12 @@ interface Loopback0
 !
 ip routing
 !
+ip prefix-list PL-4
+    seq 1 permit 198.51.100.0/24
+!
+route-map PREFIX permit 10
+   match ip address prefix-list PL-4
+!
 route-map PREFIX deny 65535
 !
 router bgp 1

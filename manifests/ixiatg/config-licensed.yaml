@@ -3,17 +3,17 @@ apiVersion: v1
 data:
     versions: |
         {
-          "release": "local-0.0.1-3587",
+          "release": "local-0.0.1-3619",
           "images": [
                 {
                     "name": "controller",
                     "path": "ghcr.io/open-traffic-generator/licensed/ixia-c-controller",
-                    "tag": "0.0.1-3587"
+                    "tag": "0.0.1-3619"
                 },
                 {
                     "name": "gnmi-server",
                     "path": "ghcr.io/open-traffic-generator/ixia-c-gnmi-server",
-                    "tag": "1.9.5"
+                    "tag": "1.9.7"
                 },
                 {
                     "name": "traffic-engine",
@@ -23,7 +23,7 @@ data:
                 {
                     "name": "protocol-engine",
                     "path": "ghcr.io/open-traffic-generator/licensed/ixia-c-protocol-engine",
-                    "tag": "1.00.0.236"
+                    "tag": "1.00.0.238"
                 }
             ]
         }
