@@ -61,6 +61,8 @@ on:
     branches:
       - main
   push:
+    paths:
+      - containers/**
     branches:
       - main
     tags:

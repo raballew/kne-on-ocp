@@ -16,6 +16,6 @@ spec:
             - |
               curl -s -L https://raw.githubusercontent.com/raballew/kne-on-ocp/main/flows/flow-r1-r2-r3.yaml > otg.yaml
               otgen run --file otg.yaml --api https://service-https-otg-controller --insecure --metrics flow | otgen transform --metrics flow --counters frames | otgen display --mode table
-          image: ghcr.io/raballew/kne-on-ocp/otgen@sha256:7f21a7a527cd984b11728287c00862aa03d30bc627afbd6f979079bbf495a69b
+          image: ghcr.io/raballew/kne-on-ocp/otgen@sha256:5134bfac7e10c7432683f3d17b1ef17953359f3d96ff8d4245f1e5e72725fafc
           name: otgen
       restartPolicy: Never
