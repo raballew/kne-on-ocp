@@ -51,7 +51,7 @@ jobs:
       - name: Save
         run: docker save ${IMAGE_NAME} -o container.tar
       - name: Upload
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: container
           path: container.tar
